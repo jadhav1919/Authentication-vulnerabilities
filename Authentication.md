@@ -81,14 +81,14 @@ Many beginners confuse these two terms.
 
 **Example**
 
-**Step 1 — Authentication**
+**Step 1 Authentication**
 - User logs in with:
     - Username: Carlos123
     - Password: pass123
 - Website verifies credentials.
 - If correct: User authenticated successfully
 
-**Step 2 — Authorization**
+**Step 2  Authorization**
 - Now website checks permissions.
 - Example questions:
     - Can the user delete accounts?
@@ -270,4 +270,4 @@ Attackers may submit extremely long passwords.
     - Response becomes slower
 - This helps attacker identify valid usernames.
 
-![Username enumeration via different responses lab](image.png)
+![Username enumeration via different responses lab](images/image.png)

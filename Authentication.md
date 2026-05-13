@@ -260,7 +260,7 @@ Extra password verification takes more time. Attackers measure these delays to i
 
 ## 18. Long Password Timing Attack
 Attackers may submit extremely long passwords.
-Example:
+- Example:
 `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
 
 **Why?**
@@ -269,3 +269,5 @@ Example:
     - More computation happens
     - Response becomes slower
 - This helps attacker identify valid usernames.
+
+![Username enumeration via different responses lab](image.png)

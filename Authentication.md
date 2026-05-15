@@ -865,7 +865,6 @@ However, identifying a valid username first is much more efficient.
    - Invalid password
 4. Submit the login form.
 
----
 
 ## Step 2: Send Request to Repeater
 
@@ -888,8 +887,6 @@ However, identifying a valid username first is much more efficient.
    Send to Repeater
    ```
 
----
-
 ## Step 3: Observe IP-Based Brute Force Protection
 
 1. In **Repeater**, send multiple invalid login requests.
@@ -905,7 +902,6 @@ This indicates:
 IP-based brute-force protection is enabled.
 ```
 
----
 
 ## Step 4: Bypass IP Blocking Using X-Forwarded-For
 
@@ -925,8 +921,6 @@ X-Forwarded-For: 4
 ```
 
 This spoofs different IP addresses and bypasses the block.
-
----
 
 ## Step 5: Discover Timing Difference
 
@@ -950,8 +944,6 @@ This happens because:
 The server spends extra time checking the password for valid usernames.
 ```
 
----
-
 # Username Enumeration Using Intruder
 
 ## Step 6: Send Request to Intruder
@@ -968,8 +960,6 @@ Intruder
 Pitchfork
 ```
 
----
-
 ## Step 7: Add X-Forwarded-For Header
 
 Add this header to the request:
@@ -977,8 +967,6 @@ Add this header to the request:
 ```http
 X-Forwarded-For: §1§
 ```
-
----
 
 ## Step 8: Configure Payload Positions
 
@@ -997,7 +985,6 @@ Payload positions:
 1. X-Forwarded-For header
 2. Username parameter
 
----
 
 ## Step 9: Configure Payload 1 (Spoofed IPs)
 
@@ -1025,7 +1012,6 @@ Max fraction digits: 0
 
 This generates spoofed IP values.
 
----
 
 ## Step 10: Configure Payload 2 (Usernames)
 
@@ -1037,7 +1023,6 @@ Payload position 2
 
 2. Paste the list of usernames.
 
----
 
 ## Step 11: Start Username Enumeration Attack
 
@@ -1056,8 +1041,6 @@ Response received
 Response completed
 ```
 
----
-
 ## Step 12: Identify Valid Username
 
 1. Observe response times carefully.
@@ -1072,7 +1055,6 @@ Valid username found.
 3. Repeat the request several times to confirm.
 4. Note the valid username.
 
----
 
 # Password Brute Force
 
@@ -1094,7 +1076,6 @@ Example:
 username=identified-user&password=§invalid-password§
 ```
 
----
 
 ## Step 14: Configure Password Attack Payloads
 
@@ -1114,13 +1095,9 @@ Range:
 
 This changes spoofed IP addresses.
 
----
-
 ### Payload Position 2
 
 Paste the password wordlist.
-
----
 
 ## Step 15: Start Password Attack
 
@@ -1132,8 +1109,6 @@ Status
 ```
 
 column.
-
----
 
 ## Step 16: Identify Correct Password
 
@@ -1157,8 +1132,6 @@ Successful login.
 
 3. Note the password from the Payload column.
 
----
-
 ## Step 17: Login Successfully
 
 1. Open the login page.
@@ -1168,8 +1141,6 @@ Successful login.
 
 3. Login successfully.
 4. Open the account page to solve the lab.
-
----
 
 # Important Note
 

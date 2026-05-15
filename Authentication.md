@@ -855,3 +855,330 @@ Cluster Bomb Attack
 However, identifying a valid username first is much more efficient.
 
 ---
+![Username enumeration via different responses lab](images/l3.png)
+## Step 1: Capture Login Request
+
+1. Start **Burp Suite**.
+2. Open the login page.
+3. Enter:
+   - Invalid username
+   - Invalid password
+4. Submit the login form.
+
+---
+
+## Step 2: Send Request to Repeater
+
+1. Go to:
+
+   ```text
+   Proxy > HTTP history
+   ```
+
+2. Find the request:
+
+   ```http
+   POST /login
+   ```
+
+3. Right-click the request.
+4. Select:
+
+   ```text
+   Send to Repeater
+   ```
+
+---
+
+## Step 3: Observe IP-Based Brute Force Protection
+
+1. In **Repeater**, send multiple invalid login requests.
+2. Notice:
+
+```text
+Your IP gets blocked after too many failed attempts.
+```
+
+This indicates:
+
+```text
+IP-based brute-force protection is enabled.
+```
+
+---
+
+## Step 4: Bypass IP Blocking Using X-Forwarded-For
+
+1. Add the following header to the request:
+
+```http
+X-Forwarded-For: 1
+```
+
+2. Send the request again.
+3. Change the value each time:
+
+```http
+X-Forwarded-For: 2
+X-Forwarded-For: 3
+X-Forwarded-For: 4
+```
+
+This spoofs different IP addresses and bypasses the block.
+
+---
+
+## Step 5: Discover Timing Difference
+
+1. Continue testing different usernames.
+2. Use a very long password:
+
+```text
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
+
+3. Observe the response times.
+
+### Observation
+
+- Invalid usernames respond quickly.
+- Valid usernames take longer to respond.
+
+This happens because:
+
+```text
+The server spends extra time checking the password for valid usernames.
+```
+
+---
+
+# Username Enumeration Using Intruder
+
+## Step 6: Send Request to Intruder
+
+1. Send the request to:
+
+```text
+Intruder
+```
+
+2. Set attack type to:
+
+```text
+Pitchfork
+```
+
+---
+
+## Step 7: Add X-Forwarded-For Header
+
+Add this header to the request:
+
+```http
+X-Forwarded-For: §1§
+```
+
+---
+
+## Step 8: Configure Payload Positions
+
+Example request:
+
+```http
+POST /login HTTP/2
+
+X-Forwarded-For: §1§
+
+username=§carlos§&password=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+```
+
+Payload positions:
+
+1. X-Forwarded-For header
+2. Username parameter
+
+---
+
+## Step 9: Configure Payload 1 (Spoofed IPs)
+
+1. In the **Payloads** side panel:
+2. Select:
+
+```text
+Payload position 1
+```
+
+3. Set payload type to:
+
+```text
+Numbers
+```
+
+4. Configure:
+
+```text
+From: 1
+To: 100
+Step: 1
+Max fraction digits: 0
+```
+
+This generates spoofed IP values.
+
+---
+
+## Step 10: Configure Payload 2 (Usernames)
+
+1. Select:
+
+```text
+Payload position 2
+```
+
+2. Paste the list of usernames.
+
+---
+
+## Step 11: Start Username Enumeration Attack
+
+1. Start the attack.
+2. After completion:
+   - Click:
+
+```text
+Columns
+```
+
+3. Enable:
+
+```text
+Response received
+Response completed
+```
+
+---
+
+## Step 12: Identify Valid Username
+
+1. Observe response times carefully.
+2. One username consistently takes longer than others.
+
+This indicates:
+
+```text
+Valid username found.
+```
+
+3. Repeat the request several times to confirm.
+4. Note the valid username.
+
+---
+
+# Password Brute Force
+
+## Step 13: Create New Intruder Attack
+
+1. Create another Intruder attack.
+2. Add:
+
+```http
+X-Forwarded-For: §1§
+```
+
+3. Insert the valid username.
+4. Add payload markers around password.
+
+Example:
+
+```http
+username=identified-user&password=§invalid-password§
+```
+
+---
+
+## Step 14: Configure Password Attack Payloads
+
+### Payload Position 1
+
+Use:
+
+```text
+Numbers
+```
+
+Range:
+
+```text
+1 - 100
+```
+
+This changes spoofed IP addresses.
+
+---
+
+### Payload Position 2
+
+Paste the password wordlist.
+
+---
+
+## Step 15: Start Password Attack
+
+1. Start the attack.
+2. Observe the:
+
+```text
+Status
+```
+
+column.
+
+---
+
+## Step 16: Identify Correct Password
+
+1. Most responses return:
+
+```text
+200 OK
+```
+
+2. One response returns:
+
+```text
+302 Found
+```
+
+This indicates:
+
+```text
+Successful login.
+```
+
+3. Note the password from the Payload column.
+
+---
+
+## Step 17: Login Successfully
+
+1. Open the login page.
+2. Enter:
+   - Valid username
+   - Correct password
+
+3. Login successfully.
+4. Open the account page to solve the lab.
+
+---
+
+# Important Note
+
+It is possible to brute-force both username and password together using:
+
+```text
+Cluster Bomb Attack
+```
+
+However, enumerating a valid username first is usually much faster and more efficient.
+
+---

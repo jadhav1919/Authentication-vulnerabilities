@@ -843,7 +843,7 @@ This indicates a successful login.
 4. Access the user account page to solve the lab.
 
 ---
-
+![Username enumeration via different responses lab](images/ls.png)
 # Important Note
 
 It is also possible to brute-force both username and password using:

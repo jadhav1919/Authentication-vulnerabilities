@@ -644,7 +644,6 @@ Password file: passwords.txt
 ---
 ![Username enumeration via different responses lab](images/username3.png)
 
-# Username Enumeration via Different Error Messages
 
 ## Step 1: Capture the Login Request
 

@@ -831,7 +831,7 @@ This indicates a successful login.
 4. Note the password from the **Payload** column.
 
 ---
-
+![Username enumeration via different responses lab](images/ip.png)
 ## Step 11: Login Successfully
 
 1. Open the login page.

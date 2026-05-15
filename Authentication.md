@@ -779,7 +779,7 @@ Notice:
 3. Note the username from the **Payload** column.
 
 ---
-
+![Username enumeration via different responses lab](images/ui.png)
 ## Step 8: Configure Password Brute Force
 
 1. Close the results window.

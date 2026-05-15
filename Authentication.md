@@ -643,3 +643,216 @@ Password file: passwords.txt
 
 ---
 ![Username enumeration via different responses lab](images/username3.png)
+
+# Username Enumeration via Different Error Messages
+
+## Step 1: Capture the Login Request
+
+1. Start **Burp Suite**.
+2. Open the login page.
+3. Enter:
+   - Invalid username
+   - Invalid password
+4. Submit the login form.
+
+---
+
+## Step 2: Send Request to Intruder
+
+1. Go to:
+
+   ```text
+   Proxy > HTTP history
+   ```
+
+2. Find the request:
+
+   ```http
+   POST /login
+   ```
+
+3. Highlight the username parameter.
+4. Right-click the request.
+5. Select:
+
+   ```text
+   Send to Intruder
+   ```
+
+---
+
+## Step 3: Configure Payload Position
+
+1. Open the **Intruder** tab.
+2. Burp automatically marks the username parameter:
+
+```http
+username=§invalid-user§&password=invalid-password
+```
+
+3. Keep the password static for now.
+
+---
+
+## Step 4: Add Username Wordlist
+
+1. Open the **Payloads** side panel.
+2. Ensure payload type is:
+
+   ```text
+   Simple list
+   ```
+
+3. Paste the list of candidate usernames.
+
+---
+
+## Step 5: Configure Grep - Extract
+
+1. Open the **Settings** tab.
+2. Under:
+
+   ```text
+   Grep - Extract
+   ```
+
+3. Click:
+
+   ```text
+   Add
+   ```
+
+4. In the response window:
+   - Scroll until you find:
+
+```text
+Invalid username or password.
+```
+
+5. Highlight only the message text using the mouse.
+6. Burp automatically configures extraction settings.
+7. Click:
+
+   ```text
+   OK
+   ```
+
+---
+
+## Step 6: Start Username Enumeration Attack
+
+1. Click:
+
+   ```text
+   Start attack
+   ```
+
+2. Wait for the attack to finish.
+
+---
+
+## Step 7: Identify Valid Username
+
+1. Observe the new extracted column in results.
+2. Sort the results using this column.
+
+### Normal Responses
+
+Most responses contain:
+
+```text
+Invalid username or password.
+```
+
+### Different Response
+
+One response contains:
+
+```text
+Invalid username or password 
+```
+
+Notice:
+
+- There is a trailing space instead of a period (`.`)
+- This subtle difference indicates a valid username
+
+3. Note the username from the **Payload** column.
+
+---
+
+## Step 8: Configure Password Brute Force
+
+1. Close the results window.
+2. Return to the **Intruder** tab.
+3. Replace the username with the valid username.
+4. Add payload markers around the password parameter.
+
+Example:
+
+```http
+username=identified-user&password=§invalid-password§
+```
+
+---
+
+## Step 9: Add Password Wordlist
+
+1. Open the **Payloads** tab.
+2. Remove the username list.
+3. Paste the password list.
+4. Start the attack.
+
+---
+
+## Step 10: Identify Correct Password
+
+1. After the attack finishes, observe the:
+
+   ```text
+   Status
+   ```
+
+   column.
+
+2. Most responses return:
+
+```text
+200 OK
+```
+
+3. One response returns:
+
+```text
+302 Found
+```
+
+This indicates a successful login.
+
+4. Note the password from the **Payload** column.
+
+---
+
+## Step 11: Login Successfully
+
+1. Open the login page.
+2. Enter:
+   - Valid username
+   - Correct password
+
+3. Login successfully.
+4. Access the user account page to solve the lab.
+
+---
+
+# Important Note
+
+It is also possible to brute-force both username and password using:
+
+```text
+Cluster Bomb Attack
+```
+
+However, identifying a valid username first is much more efficient.
+
+---

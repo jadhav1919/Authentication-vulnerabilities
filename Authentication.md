@@ -642,4 +642,4 @@ Password file: passwords.txt
 - Stops automatically after finding valid credentials
 
 ---
-
+![Username enumeration via different responses lab](images/username3.png)

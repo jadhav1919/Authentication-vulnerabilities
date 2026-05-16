@@ -946,12 +946,16 @@ The server spends extra time checking the password for valid usernames.
 ```
 - if username is incorrect:
   ![Username enumeration via different responses lab](images/rt1.png)
-- if the username  correct and password incorrect : 
-  ![Username enumeration via different responses lab](images/rt2.png
+  
+  
+- if the username  correct and password incorrect :
+![Username enumeration via different responses lab](images/rt2.png)
+
 
   # no differnece in both case
   - if the username correct and password is long : response time is big
-   ![Username enumeration via different responses lab](images/rt3.png
+    
+![Username enumeration via different responses lab](images/rt3.png)
 
   
 # Username Enumeration Using Intruder

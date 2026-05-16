@@ -1069,6 +1069,7 @@ Valid username found.
 3. Repeat the request several times to confirm.
 4. Note the valid username.
 
+![Username enumeration via different responses lab](images/vd.png)
 
 # Password Brute Force
 

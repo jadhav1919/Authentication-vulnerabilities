@@ -901,7 +901,7 @@ This indicates:
 ```text
 IP-based brute-force protection is enabled.
 ```
-
+![Username enumeration via different responses lab](images/ipb.png)
 
 ## Step 4: Bypass IP Blocking Using X-Forwarded-For
 
@@ -919,6 +919,7 @@ X-Forwarded-For: 2
 X-Forwarded-For: 3
 X-Forwarded-For: 4
 ```
+![Username enumeration via different responses lab](images/xf.png)
 
 This spoofs different IP addresses and bypasses the block.
 
@@ -943,7 +944,16 @@ This happens because:
 ```text
 The server spends extra time checking the password for valid usernames.
 ```
+- if username is incorrect:
+  ![Username enumeration via different responses lab](images/rt1.png)
+- if the username  correct and password incorrect : 
+  ![Username enumeration via different responses lab](images/rt2.png
 
+  # no differnece in both case
+  - if the username correct and password is long : response time is big
+   ![Username enumeration via different responses lab](images/rt3.png
+
+  
 # Username Enumeration Using Intruder
 
 ## Step 6: Send Request to Intruder

@@ -1145,7 +1145,7 @@ This indicates:
 Successful login.
 ```
 
-
+![Username enumeration via different responses lab](images/p1.png)
 3. Note the password from the Payload column.
 
 ## Step 17: Login Successfully
@@ -1157,7 +1157,7 @@ Successful login.
 
 3. Login successfully.
 4. Open the account page to solve the lab.
-
+![Username enumeration via different responses lab](images/ls3.png)
 # Important Note
 
 It is possible to brute-force both username and password together using:

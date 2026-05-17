@@ -1662,18 +1662,27 @@ Important:
 Your password must align with your username entries.
 ```
 
-Meaning:
+# Python Script for Alternating Username and Password Lists
 
-| Username | Password |
-|---|---|
-| wiener | correct-password |
-| carlos | candidate-password |
-| wiener | correct-password |
-| carlos | next-password |
+```python
+print("########## Usernames ##########")
 
-This resets the counter continuously.
+for i in range(150):
+    if i % 3:
+        print("carlos")
+    else:
+        print("wiener")
 
----
+
+print("\n########## Passwords ##########")
+
+with open("passwords.txt", "r") as f:
+    lines = f.readlines()
+
+for pwd in lines:
+    print("peter")
+    print(pwd.strip())
+```
 
 # Start Attack
 

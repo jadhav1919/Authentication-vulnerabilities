@@ -1168,4 +1168,324 @@ Cluster Bomb Attack
 
 However, enumerating a valid username first is usually much faster and more efficient.
 
+
+
+# Flawed Brute-Force Protection
+
+
+# 1. What is Brute-Force Protection?
+
+Brute-force protection is a security mechanism used to stop attackers from trying many username and password combinations repeatedly.
+
+The main goal is:Make brute-force attacks slower and harder
+
+# 2. Why Brute-Force Protection is Needed
+
+In a brute-force attack:
+
+- Attackers try many passwords
+- Most login attempts fail
+- Automated tools can send requests very fast
+
+Without protection:Attackers may eventually guess correct credentials
+
+# 3. Common Brute-Force Protection Methods
+
+There are mainly 2 common protection methods.
+
+# 4. Account Locking
+
+The website locks the target account after too many failed login attempts.
+
+## Example
+
+Suppose limit is:5 failed login attempts
+## Attack Flow
+
+### Step 1
+
+Attacker tries wrong passwords:
+
+```tex
+Attempt 1 → Wrong
+Attempt 2 → Wrong
+Attempt 3 → Wrong
+Attempt 4 → Wrong
+Attempt 5 → Wrong
+```
+
+### Step 2
+
+Website locks account.
+
+Example response:Account locked for 30 minutes
+## Why This Helps
+
+Even if attacker continues:No more password attempts allowed
+
+This slows down brute-force attacks.
+
+# 5. IP Address Blocking
+
+Instead of locking the account, some websites block the attacker's IP address.
+
+## Example
+
+Suppose website allows:10 login attempts per minute
+If attacker exceeds limit:IP address gets temporarily blocked
+
+## Example Response
+
+```http
+HTTP/1.1 429 Too Many Requests
+```
+
+## Why This Helps
+
+Attack tools cannot continue sending requests rapidly.
+
+# 6. Problem with Brute-Force Protection
+
+Many websites implement these protections incorrectly.
+
+This creates:Flawed Brute-Force Protection
+
+# 7. What is Flawed Brute-Force Protection?
+
+This means:The protection exists but can still be bypassed
+
+because of weak logic or coding mistakes.
+
+# 8. Example of Flawed Logic
+
+Some websites reset the failed-attempt counter after a successful login.
+
+## Normal Expected Behavior
+
+Suppose limit is:5 failed attempts
+
+
+Website should permanently count failed attempts until timeout.
+
+## Flawed Behavior
+
+Website logic:
+
+```text
+If login successful:
+    Reset failed-attempt counter
+```
+
+This becomes dangerous.
+
+# 9. How Attackers Bypass This Protection
+
+Attacker uses:
+
+- Their own valid account
+- Victim username
+- Password wordlist
+
+# 10. Attack Example
+
+## Victim Account
+
+```text
+Username: carlos
+```
+
+## Attacker Account
+
+```text
+Username: attacker123
+Password: pass123
+```
+
+# 11. Attack Process
+
+
+### Step 1 Try Wrong Passwords
+
+Attacker sends:
+
+```text
+carlos : test1
+carlos : test2
+carlos : test3
+carlos : test4
+```
+
+Failed attempt counter becomes:4
+
+
+### Step 2  Login to Own Account
+
+Attacker logs into:attacker123 : pass123
+
+Login succeeds.
+
+### Step 3 Counter Resets
+
+Website resets failed-attempt counter.
+
+Now counter becomes:0
+### Step 4 Continue Brute Force
+
+Attacker again tries:
+
+```text
+carlos : password1
+carlos : hello123
+carlos : qwerty
+carlos : admin123
+```
+# 12. Why This Attack Works
+
+Because website logic is flawed.
+
+The website assumes:
+
+```text
+Successful login = safe user
+```
+
+So it resets protection counters.
+
+But attacker abuses this behavior.
+
+# 13. Wordlist Bypass Technique
+
+Attackers automate this process.
+
+They insert their own valid credentials regularly inside the wordlist.
+
+# 14. Example Wordlist Pattern
+
+```text
+carlos:test1
+carlos:test2
+carlos:test3
+attacker123:pass123
+carlos:test4
+carlos:test5
+carlos:test6
+attacker123:pass123
+```
+# 15. Why This Bypasses Protection
+
+Each successful login:
+
+```text
+Resets failed-attempt counter
+```
+
+So attacker never reaches lockout limit.
+
+
+# 16. Real-World Result
+
+Protection becomes almost useless.
+
+Attacker can continue brute-force attempts indefinitely.
+
+# 17. Important Note About Automation
+
+Attackers usually automate this using tools like:
+
+- Burp Suite Intruder
+- Hydra
+- Custom Python scripts
+
+These tools can:
+
+- Rotate credentials
+- Insert valid logins automatically
+- Avoid triggering protection
+
+# 18. Example Attack Logic
+
+## Weak Website Logic
+
+```python
+if login_successful:
+    failed_attempts = 0
+```
+
+## Why This is Dangerous
+
+Any successful login resets protection for attacker.
+
+# 19. Better Secure Logic
+
+A safer implementation:
+
+```python
+Track failed attempts separately for:
+- Each account
+- Each IP
+- Each session
+```
+
+Do NOT reset counters globally
+
+# 20. Signs of Flawed Brute-Force Protection During Testing
+
+While testing login pages, check for:
+
+## 20.1 Counter Reset After Successful Login
+
+Try:
+
+- Few failed attempts
+- One successful login
+- More failed attempts
+
+See if protection resets.
+
+## 20.2 Inconsistent Lockout Behavior
+
+Example:
+
+```text
+Sometimes blocked
+Sometimes not blocked
+```
+
+This may indicate flawed logic.
+
+## 20.3 Easy Rate-Limit Bypass
+
+Check whether:
+
+- Different usernames bypass protection
+- Successful logins reset counters
+- Different IP headers bypass blocks
+
+# 21. Important Security Notes
+
+## Good Security Practice
+
+### Failed-attempt counters should not reset easily
+
+### Use Rate Limiting
+
+Example:
+
+```text
+Maximum 5 attempts per minute
+```
+
+### Track Multiple Factors
+
+Track:
+
+- Username
+- IP address
+- Device/session
+
+### Use CAPTCHA Carefully
+
+CAPTCHA may slow automation.
+
 ---
+

@@ -1735,6 +1735,7 @@ Successful login.
 ```text
 Payload 2 column
 ```
+![lab](images/into.png)
 
 ---
 
@@ -1749,3 +1750,5 @@ Payload 2 column
 
 3. Login successfully.
 4. Open Carlos's account page to solve the lab.
+![lab](images/ls4.png)
+

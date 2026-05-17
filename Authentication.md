@@ -1069,7 +1069,7 @@ Valid username found.
 3. Repeat the request several times to confirm.
 4. Note the valid username.
 
-![Username enumeration via different responses lab](images/vd.png)
+![Username enumeration via different responses lab](images/u1.png)
 
 # Password Brute Force
 
@@ -1144,6 +1144,7 @@ This indicates:
 ```text
 Successful login.
 ```
+
 
 3. Note the password from the Payload column.
 

@@ -1169,7 +1169,6 @@ Cluster Bomb Attack
 However, enumerating a valid username first is usually much faster and more efficient.
 
 
-
 # Flawed Brute-Force Protection
 
 
@@ -1487,9 +1486,9 @@ Track:
 
 CAPTCHA may slow automation.
 
----
 
 ![lab](images/lab4.png)
+
 ## Step 1: Observe Login Protection
 
 1. Open the login page.
@@ -1507,8 +1506,8 @@ Password: test123
 ```text
 After 3 failed attempts, your IP/account gets temporarily blocked.
 ```
+![lab](images/olp.png)
 
----
 
 ## Step 2: Observe Counter Reset Behavior
 

@@ -1674,14 +1674,21 @@ for i in range(150):
         print("wiener")
 
 
-print("\n########## Passwords ##########")
+print("########## Passwords ##########")
 
-with open("passwords.txt", "r") as f:
+with open("passwords.txt", "r", encoding="utf-8", errors="ignore") as f:
     lines = f.readlines()
 
+i = 0
+
 for pwd in lines:
-    print("peter")
+
+    if i % 2 == 0:
+        print("peter")
+
     print(pwd.strip())
+
+    i = i + 1
 ```
 
 # Start Attack

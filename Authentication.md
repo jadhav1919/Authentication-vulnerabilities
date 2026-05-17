@@ -1489,3 +1489,248 @@ CAPTCHA may slow automation.
 
 ---
 
+![lab](images/lab4.png)
+## Step 1: Observe Login Protection
+
+1. Open the login page.
+2. Submit invalid credentials multiple times.
+
+Example:
+
+```text
+Username: test
+Password: test123
+```
+
+3. Notice:
+
+```text
+After 3 failed attempts, your IP/account gets temporarily blocked.
+```
+
+---
+
+## Step 2: Observe Counter Reset Behavior
+
+1. Before reaching the limit:
+   - Login successfully using your own account.
+
+2. Notice:
+
+```text
+The failed login counter resets after a successful login.
+```
+
+This means:
+
+```text
+We can bypass brute-force protection by alternating:
+- Valid login
+- Target login attempt
+```
+
+---
+
+# Create Intruder Attack
+
+## Step 3: Send Request to Intruder
+
+1. Capture the request:
+
+```http
+POST /login
+```
+
+2. Right-click the request.
+3. Select:
+
+```text
+Send to Intruder
+```
+
+---
+
+## Step 4: Configure Pitchfork Attack
+
+1. Open the **Intruder** tab.
+2. Set attack type to:
+
+```text
+Pitchfork
+```
+
+3. Add payload positions to:
+   - Username parameter
+   - Password parameter
+
+Example:
+
+```http
+username=§user§&password=§pass§
+```
+
+---
+
+# Configure Resource Pool
+
+## Step 5: Set Maximum Concurrent Requests
+
+1. Click:
+
+```text
+Resource pool
+```
+
+2. Create or edit a resource pool.
+3. Set:
+
+```text
+Maximum concurrent requests = 1
+```
+
+This ensures:
+
+```text
+Requests are sent one at a time and in correct order.
+```
+
+---
+
+# Configure Username Payload List
+
+## Step 6: Add Username Payloads
+
+1. Open the **Payloads** side panel.
+2. Select:
+
+```text
+Payload position 1
+```
+
+3. Add usernames in alternating order:
+
+Example:
+
+```text
+wiener
+carlos
+wiener
+carlos
+wiener
+carlos
+```
+
+Requirements:
+
+- Your username must come first
+- Carlos must repeat many times
+- At least 100 entries recommended
+
+Purpose:
+
+```text
+Successful login to your account resets the failed attempt counter.
+```
+
+---
+
+# Configure Password Payload List
+
+## Step 7: Add Password Payloads
+
+1. Select:
+
+```text
+Payload position 2
+```
+
+2. Add passwords aligned with usernames.
+
+Example:
+
+```text
+peter-password
+123456
+peter-password
+password
+peter-password
+qwerty
+```
+
+Important:
+
+```text
+Your password must align with your username entries.
+```
+
+Meaning:
+
+| Username | Password |
+|---|---|
+| wiener | correct-password |
+| carlos | candidate-password |
+| wiener | correct-password |
+| carlos | next-password |
+
+This resets the counter continuously.
+
+---
+
+# Start Attack
+
+## Step 8: Launch Attack
+
+1. Start the Intruder attack.
+2. Wait for completion.
+
+---
+
+# Identify Correct Password
+
+## Step 9: Filter Results
+
+1. Filter out:
+
+```text
+200 OK
+```
+
+responses.
+
+2. Sort remaining responses by:
+
+```text
+Username
+```
+
+3. Observe:
+
+```text
+Only one request for carlos returns 302 Found.
+```
+
+This indicates:
+
+```text
+Successful login.
+```
+
+4. Note the password from:
+
+```text
+Payload 2 column
+```
+
+---
+
+# Login Successfully
+
+## Step 10: Access Carlos Account
+
+1. Open login page.
+2. Enter:
+   - Username: carlos
+   - Identified password
+
+3. Login successfully.
+4. Open Carlos's account page to solve the lab.

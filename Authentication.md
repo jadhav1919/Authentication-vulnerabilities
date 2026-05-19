@@ -2095,3 +2095,5 @@ Helps slow automated attacks.
 Limit login speed.
 
 Example:5 login attempts per minute
+![Username Enumeration](images/lab5.png)
+

@@ -2097,3 +2097,253 @@ Limit login speed.
 Example:5 login attempts per minute
 ![Username Enumeration](images/lab5.png)
 
+## Step 1: Capture Login Request
+
+1. Start **Burp Suite**.
+2. Open the login page.
+3. Enter:
+   - Invalid username
+   - Invalid password
+
+4. Submit the login form.
+
+## Step 2: Send Request to Intruder
+
+1. Go to:
+
+```text
+Proxy > HTTP history
+```
+
+2. Find the request:
+
+```http
+POST /login
+```
+
+3. Right-click the request.
+4. Select:
+
+```text
+Send to Intruder
+```
+
+# Username Enumeration
+
+## Step 3: Configure Cluster Bomb Attack
+
+1. Open the **Intruder** tab.
+2. Set attack type to:
+
+```text
+Cluster bomb
+```
+
+## Step 4: Add Payload Positions
+
+1. Add payload position to:
+
+```http
+username=§invalid-username§
+```
+
+2. Add an empty payload position at the end of the password parameter.
+
+Example:
+
+```http
+username=§invalid-username§&password=example§§
+```
+
+Purpose:
+
+```text
+This repeats each username multiple times.
+```
+
+## Step 5: Configure Payload 1 (Usernames)
+
+1. Open the **Payloads** side panel.
+2. Select:
+
+```text
+Payload position 1
+```
+
+3. Paste the username wordlist.
+
+
+## Step 6: Configure Payload 2 (Null Payloads)
+
+1. Select:
+
+```text
+Payload position 2
+```
+
+2. Set payload type to:
+
+```text
+Null payloads
+```
+
+3. Configure:
+
+```text
+Generate payloads: 5
+```
+
+This causes:
+
+```text
+Each username is tested 5 times.
+```
+
+
+## Step 7: Start Username Enumeration Attack
+
+1. Start the attack.
+2. Wait for completion.
+
+
+## Step 8: Identify Valid Username
+
+1. Observe the response lengths.
+2. One username produces longer responses.
+
+### Normal Error
+
+```text
+Invalid username or password
+```
+
+### Different Error
+
+```text
+You have made too many incorrect login attempts.
+```
+
+This indicates:
+
+```text
+Valid username found.
+```
+
+3. Note the username.
+
+# Password Brute Force
+
+## Step 9: Create New Intruder Attack
+
+1. Send the request to Intruder again.
+2. Set attack type to:
+
+```text
+Sniper
+```
+
+## Step 10: Configure Password Payload Position
+
+1. Insert the valid username.
+2. Add payload markers around password.
+
+Example:
+
+```http
+username=identified-user&password=§invalid-password§
+```
+
+## Step 11: Add Password Wordlist
+
+1. Open the **Payloads** tab.
+2. Paste the password list.
+
+---
+
+## Step 12: Configure Grep Extract
+
+1. Open:
+
+```text
+Settings
+```
+
+2. Under:
+
+```text
+Grep - Extract
+```
+
+3. Click:
+
+```text
+Add
+```
+
+4. Highlight the error message text from the response.
+
+Example:
+
+```text
+Invalid username or password
+```
+
+5. Click:
+
+```text
+OK
+```
+
+## Step 13: Start Password Attack
+
+1. Start the attack.
+2. Wait for completion.
+
+## Step 14: Identify Correct Password
+
+1. Observe the:
+
+```text
+Grep Extract
+```
+
+column.
+
+2. Most responses contain error messages.
+
+3. One response contains:
+
+```text
+No error message
+```
+
+This indicates:
+
+```text
+Successful login.
+```
+
+4. Note the password from the Payload column.
+
+
+# Final Login
+
+## Step 15: Wait for Lock Reset
+
+1. Wait about:
+
+```text
+1 minute
+```
+
+This allows the account lock to reset.
+
+## Step 16: Login Successfully
+
+1. Open the login page.
+2. Enter:
+   - Valid username
+   - Correct password
+
+3. Login successfully.
+4. Open the account page to solve the lab.

@@ -1752,3 +1752,346 @@ Payload 2 column
 4. Open Carlos's account page to solve the lab.
 ![lab](images/ls4.png)
 
+
+
+# Account Locking
+
+# 1. What is Account Locking?
+
+Account locking is a security mechanism used to stop brute-force attacks.
+
+The website temporarily locks a user's account after multiple failed login attempts.
+
+## Simple Understanding
+
+If someone enters the wrong password many times: Website blocks further login attempts
+
+for some time.
+
+# 2. Why Websites Use Account Locking
+
+Brute-force attacks depend on:
+
+- Trying many passwords repeatedly
+- Automated login attempts
+- High-speed guessing
+
+Account locking tries to stop this behavior.
+
+# 3. How Account Locking Works
+
+## Example Login Limit
+
+Suppose website allows:Maximum 3 failed login attempts
+
+## Attack Example
+
+### Attempt 1
+
+```text
+Username: carlos
+Password: test123
+```
+
+Result:
+
+```text
+Login Failed
+```
+
+### Attempt 2
+
+```text
+Username: carlos
+Password: hello123
+```
+
+Result:
+
+```text
+Login Failed
+```
+
+### Attempt 3
+
+```text
+Username: carlos
+Password: admin123
+```
+
+Result:
+
+```text
+Account Locked
+```
+
+
+# 4. Example Server Response
+
+Sometimes server responds with messages like:
+
+```http
+HTTP/1.1 403 Forbidden
+```
+
+or
+
+```text
+Your account has been locked
+```
+
+
+# 5. Why Account Locking Helps
+
+This slows down attackers because: They cannot continue trying passwords continuously
+
+# 6. Problem with Account Locking
+
+Although account locking helps, it is NOT perfect.
+
+Attackers can still bypass or abuse it.
+
+# 7. Username Enumeration Through Account Locking
+
+Account locking itself can leak information.
+
+## How?
+
+Suppose attacker enters many wrong passwords.
+
+### Invalid Username
+
+```text
+Invalid username or password
+```
+
+### Valid Username
+
+After multiple attempts:
+
+```text
+Account locked
+```
+
+## What Attacker Learns
+
+If account gets locked:
+
+```text
+Username exists
+```
+
+because non-existing usernames usually cannot be locked.
+
+# 8. Why This is Dangerous
+
+Attackers can build a list of valid usernames.
+
+This is called:
+
+```text
+Username Enumeration
+```
+
+# 9. Limitation of Account Locking
+
+Account locking mainly protects: One specific account
+
+But attackers may target: Many accounts at the same time
+
+# 10. Brute-Forcing Multiple Accounts
+
+Instead of attacking one account repeatedly:
+
+Attacker tries:
+
+- Few passwords
+- Against many usernames
+
+This avoids account lockouts.
+
+# 11. Attack Strategy to Bypass Account Locking
+
+# Step 1 Find Candidate Usernames
+
+Attacker first collects possible usernames.
+
+## Methods
+
+### Username Enumeration
+
+Example:
+
+```text
+Different error messages
+Different response times
+Account lock responses
+```
+
+### Common Username Lists
+
+Example:
+
+```text
+admin
+carlos
+john
+mike
+support
+administrator
+```
+# Step 2 Choose Small Password List
+
+Attacker selects only a few common passwords.
+
+Important: Number of passwords must stay below lockout limit
+
+## Example
+
+Suppose lockout limit: 3 failed attempts
+
+Attacker selects:
+
+```text
+password123
+welcome123
+admin123
+```
+Only 3 passwords.
+# Step 3 Try Passwords Against All Users
+
+Attacker uses automation tools.
+
+## Example Attack
+
+```text
+carlos : password123
+john : password123
+mike : password123
+admin : password123
+```
+
+Then:
+
+```text
+carlos : welcome123
+john : welcome123
+mike : welcome123
+admin : welcome123
+```
+# 12. Why This Bypasses Account Locking
+
+Each account only receives: Few login attempts
+below the lockout threshold.
+So accounts never get locked.
+### Result of the Attack
+If even ONE user uses a weak password:Attacker gains access
+
+# 13. Credential Stuffing
+
+Another major problem is:Credential Stuffing
+
+### What is Credential Stuffing?
+
+Credential stuffing means:
+
+```text
+Using stolen username-password pairs from data breaches
+```
+to log into other websites.
+#### Why Credential Stuffing Works
+
+Many people reuse the same password on multiple websites.
+
+## Example
+
+Suppose user uses:
+
+```text
+Username: carlos@gmail.com
+Password: Hello@123
+```
+
+on:
+
+- Facebook
+- Twitter
+- Banking site
+- Shopping site
+
+## If One Website Gets Hacked
+
+Attacker steals credentials.
+
+Then attacker tries same credentials on other websites.
+
+# 14. Credential Stuffing Attack Example
+
+## Stolen Credential List
+
+```text
+carlos@gmail.com : Hello@123
+john@gmail.com : password123
+admin@gmail.com : admin123
+```
+
+## Automated Login Attempts
+
+Attacker sends: One login attempt per account
+
+#### Why Account Locking Fails Against Credential Stuffing
+
+Account locking usually triggers after:
+
+```text
+Multiple failed attempts
+```
+
+But in credential stuffing:
+
+```text
+Each username is attempted only once
+```
+
+So no lockout occurs.
+
+---
+
+### Why Credential Stuffing is Dangerous
+
+Credential stuffing can compromise:
+
+- Many accounts quickly
+- Different users simultaneously
+- Real accounts with valid passwords
+
+
+# 15. Important Security Notes
+
+## Good Protection Methods
+
+### Use Multi-Factor Authentication (MFA)
+
+Even if password is correct:Attacker still needs OTP/device
+
+### Detect Unusual Login Behavior
+
+Monitor:
+
+- Different IP addresses
+- Large login volumes
+- Bot activity
+
+### Password Reuse Detection
+
+Warn users about reused passwords.
+
+### CAPTCHA Protection
+
+Helps slow automated attacks.
+
+### Rate Limiting
+
+Limit login speed.
+
+Example:5 login attempts per minute

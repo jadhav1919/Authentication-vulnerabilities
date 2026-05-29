@@ -2347,3 +2347,136 @@ This allows the account lock to reset.
 
 3. Login successfully.
 4. Open the account page to solve the lab.
+
+--------------
+----------
+
+# User Rate Limiting
+
+## What is User Rate Limiting?
+
+User rate limiting is a security feature that helps prevent brute-force attacks.
+
+If a user sends too many login requests in a short time, the website temporarily blocks their IP address.
+
+### Example
+
+Suppose an attacker tries hundreds of passwords for an account:
+
+* Password1
+* Password2
+* Password3
+* ...
+
+After a certain number of failed attempts, the website blocks the attacker's IP address.
+
+
+## How Can the IP Be Unblocked?
+
+The blocked IP can usually be unblocked in one of these ways:
+
+1. Automatically after a certain time (e.g., 15 minutes)
+2. Manually by an administrator
+3. By completing a CAPTCHA successfully
+
+
+## Advantages of User Rate Limiting
+
+* Helps stop brute-force attacks.
+* Better than account locking in some situations.
+* Reduces the risk of username enumeration.
+* Less likely to cause denial-of-service (DoS) problems.
+
+
+## Limitations
+
+User rate limiting is not perfect.
+
+Attackers may bypass it by:
+
+* Using different IP addresses.
+* Using VPNs or proxy servers.
+* Rotating IP addresses during the attack.
+
+If the protection only counts requests from one IP, changing the IP may avoid the block.
+
+## Important Point
+
+Since the limit is based on the number of HTTP requests from an IP address, an attacker may sometimes try multiple password guesses in a single request to bypass the protection.
+
+# HTTP Basic Authentication
+
+## What is HTTP Basic Authentication?
+
+HTTP Basic Authentication is a simple authentication method used by some websites and applications.
+
+The username and password are combined and encoded using Base64.
+
+### Format
+
+```http
+Authorization: Basic base64(username:password)
+```
+
+### Example
+
+Username:
+
+```text
+admin
+```
+
+Password:
+
+```text
+password123
+```
+
+Combined:
+
+```text
+admin:password123
+```
+
+Encoded in Base64 and sent in the HTTP header.
+
+## How It Works
+
+1. User enters username and password.
+2. Browser creates a Base64-encoded token.
+3. Browser stores the token.
+4. Browser automatically sends the token with every request.
+
+
+## Why HTTP Basic Authentication Is Considered Weak
+
+### 1. Credentials Are Sent Repeatedly
+
+The username and password information is sent with every request.
+
+If the connection is not properly protected, an attacker may capture these credentials.
+
+
+### 2. Vulnerable to Man-in-the-Middle (MitM) Attacks
+
+Without proper encryption (HTTPS/HSTS), attackers can intercept network traffic and steal credentials.
+
+
+### 3. Weak Brute-Force Protection
+
+Many implementations do not have strong protection against brute-force attacks.
+
+Attackers may repeatedly try different username and password combinations.
+
+
+### 4. Vulnerable to CSRF Attacks
+
+HTTP Basic Authentication does not provide protection against Cross-Site Request Forgery (CSRF) attacks by itself.
+
+
+### 5. Credential Reuse Risk
+
+Even if an attacker gains access to a less important page, the same username and password might be used elsewhere.
+
+This can lead to compromise of more sensitive systems.
+

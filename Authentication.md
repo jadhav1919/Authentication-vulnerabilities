@@ -2480,3 +2480,225 @@ Even if an attacker gains access to a less important page, the same username and
 
 This can lead to compromise of more sensitive systems.
 
+--------------
+-------------
+
+# Vulnerabilities in Multi-Factor Authentication (MFA)
+
+## What is Multi-Factor Authentication (MFA)?
+
+Multi-Factor Authentication (MFA) is a security method that requires users to prove their identity using more than one authentication factor.
+
+### Common Factors
+
+| Factor Type        | Example                      |
+| ------------------ | ---------------------------- |
+| Something you know | Password, PIN                |
+| Something you have | Mobile phone, security token |
+| Something you are  | Fingerprint, Face ID         |
+
+
+## Why MFA is More Secure
+
+With normal login:
+
+```text
+Username + Password
+```
+
+If an attacker steals the password, they can log in.
+
+With MFA:
+
+```text
+Password + Verification Code
+```
+
+Even if the attacker knows the password, they still need the verification code.
+
+This makes attacks much harder.
+
+
+# Important Rule
+
+True MFA requires **different authentication factors**.
+
+### Correct MFA
+
+```text
+Password (Something you know)
++
+Phone Token (Something you have)
+```
+
+ True Two-Factor Authentication
+
+### Incorrect MFA Example
+
+```text
+Password
++
+Email Verification Code
+```
+
+⚠ Not true 2FA
+
+Why?
+
+Because both depend on knowing the email account credentials.
+
+The same factor ("something you know") is being checked twice.
+
+
+# Two-Factor Authentication (2FA) Tokens
+
+A verification token is a temporary code used during login.
+
+Example:
+
+```text
+Password: admin123
+Verification Code: 845921
+```
+
+The user must provide both.
+
+
+
+## Common Types of 2FA Tokens
+
+### 1. Hardware Security Tokens
+
+Examples:
+
+* RSA Token
+* Banking Security Device
+
+Features:
+
+* Generate codes directly on the device.
+* Very secure.
+* Difficult to intercept.
+
+### 2. Authenticator Apps
+
+Examples:
+
+* Google Authenticator
+
+Features:
+
+* Generates codes on the phone.
+* Does not rely on SMS.
+* More secure than text messages.
+
+### 3. SMS Verification Codes
+
+Example:
+
+```text
+Your verification code is: 123456
+```
+
+Sent to the user's phone through SMS.
+
+
+# Weaknesses of SMS-Based 2FA
+
+## 1. SMS Interception
+
+The verification code travels through mobile networks.
+
+Attackers may intercept messages in certain situations.
+
+
+## 2. SIM Swapping Attack
+
+### What is SIM Swapping?
+
+The attacker tricks the mobile carrier into transferring the victim's phone number to a new SIM card.
+
+### Result
+
+```text
+Victim's Phone Number
+        ↓
+Attacker's SIM Card
+```
+
+Now all SMS messages go to the attacker.
+
+Including:
+
+* OTPs
+* Verification codes
+* Password reset messages
+
+This can allow account compromise.
+
+
+# Bypassing Two-Factor Authentication
+
+Sometimes 2FA is implemented incorrectly.
+
+In these cases, attackers may access accounts without completing the second authentication step.
+
+
+## Example of a Flawed 2FA Process
+
+### Step 1
+
+User enters:
+
+```text
+Username
+Password
+```
+
+Website accepts them.
+
+### Step 2
+
+Website asks for:
+
+```text
+Verification Code
+```
+
+
+### Problem
+
+Some websites consider the user partially logged in after Step 1.
+
+If the website fails to properly verify Step 2, protected pages may still be accessible.
+
+
+## Example Flow
+
+```text
+1. Enter Username
+        ↓
+2. Enter Password
+        ↓
+3. Verification Page Appears
+        ↓
+4. User skips verification page
+        ↓
+5. Accesses account page directly
+```
+
+If the website does not check whether the verification code was completed, the attacker gains access.
+
+---
+
+# Why This Happens
+
+The website:
+
+ Checks username and password
+
+ Fails to check whether 2FA was completed
+
+As a result, the second security layer becomes useless.
+
+---

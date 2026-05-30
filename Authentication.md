@@ -2701,6 +2701,176 @@ The website:
 
 As a result, the second security layer becomes useless.
 
----
 
 ![2fa](images/2fa.png)
+
+
+## Step 1: Login to Your Own Account
+
+1. Open the login page.
+2. Enter your own credentials.
+
+Example:
+
+```text
+Username: wiener
+Password: peter
+```
+
+3. Click **Log in**.
+
+## Step 2: Retrieve 2FA Verification Code
+
+1. After login, a verification code is sent by email.
+2. Click:
+
+```text
+Email client
+```
+
+3. Open the latest email.
+4. Note the verification code.
+
+
+## Step 3: Complete 2FA Login
+
+1. Enter the verification code.
+2. Successfully log in to your account.
+
+
+## Step 4: Visit Account Page
+
+1. Navigate to:
+
+```text
+My Account
+```
+
+2. Observe the URL.
+
+Example:
+
+```text
+https://LAB-ID.web-security-academy.net/my-account?id=wiener
+```
+
+or
+
+```text
+https://LAB-ID.web-security-academy.net/my-account
+```
+
+3. Make a note of the URL.
+
+
+## Step 5: Logout
+
+1. Click:
+
+```text
+Log out
+```
+
+2. Return to the login page.
+
+## Step 6: Login as Victim
+
+Use the victim credentials provided by the lab.
+
+Example:
+
+```text
+Username: carlos
+Password: montoya
+```
+
+1. Enter the credentials.
+2. Click **Log in**.
+
+
+## Step 7: Bypass the 2FA Page
+
+1. After login, the application redirects to:
+
+```text
+/login2
+```
+
+or a similar 2FA verification page.
+
+2. Do **not** enter a verification code.
+
+3. Manually change the URL in the browser address bar to:
+
+```text
+/my-account
+```
+
+Example:
+
+```text
+https://LAB-ID.web-security-academy.net/my-account
+```
+
+4. Press **Enter**.
+
+
+## Step 8: Lab Solved
+
+If the application does not properly enforce the second authentication step:
+
+```text
+The My Account page loads successfully.
+```
+
+This means:
+
+```text
+2FA authentication was bypassed.
+```
+
+The lab is solved once the victim's account page is displayed.
+
+
+# Vulnerability Explanation
+
+### Normal Flow
+
+```text
+Login
+   ↓
+2FA Verification
+   ↓
+My Account
+```
+
+### Vulnerable Flow
+
+```text
+Login
+   ↓
+2FA Verification
+   ↓
+Manually browse to /my-account
+   ↓
+Access granted
+```
+
+The application checks:
+
+```text
+Username + Password
+```
+
+but fails to verify that:
+
+```text
+2FA step has been completed
+```
+
+before granting access to protected pages.
+
+---
+![sol](images/sol.png)
+
+

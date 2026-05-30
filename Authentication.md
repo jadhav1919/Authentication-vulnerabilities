@@ -2702,3 +2702,5 @@ The website:
 As a result, the second security layer becomes useless.
 
 ---
+
+![2fa](images/2fa.png)

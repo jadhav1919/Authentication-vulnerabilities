@@ -3421,3 +3421,580 @@ verify
 parameter supplied by the client instead of securely binding the verification process to the authenticated user.
 
 ---
+You can add the following simplified notes to your GitHub.
+
+# Brute-Forcing 2FA Verification Codes
+
+## What is a 2FA Verification Code?
+
+A 2FA (Two-Factor Authentication) verification code is a temporary code used as an extra security step after entering a password.
+
+### Example
+
+```text
+Username: carlos
+Password: qwerty123
+Verification Code: 123456
+```
+
+The user must provide both the password and verification code to log in.
+
+---
+
+# Why Are 2FA Codes Vulnerable?
+
+Most verification codes are short:
+
+* 4 digits → 0000 to 9999
+* 6 digits → 000000 to 999999
+
+### Example
+
+```text
+000000
+000001
+000002
+...
+999999
+```
+
+Since there are a limited number of possible values, attackers may try many guesses until they find the correct code.
+
+This is called **brute-forcing**.
+
+---
+
+# What is Brute-Forcing?
+
+Brute-forcing means repeatedly trying different values until the correct one is found.
+
+### Example
+
+```text
+Try 1: 123456 ❌
+Try 2: 654321 ❌
+Try 3: 111111 ❌
+Try 4: 845921 ✅
+```
+
+The attacker keeps guessing until the correct code is discovered.
+
+---
+
+# Why Is This Dangerous?
+
+If a website does not limit verification attempts:
+
+```text
+Attacker
+    ↓
+Thousands of Code Guesses
+    ↓
+Correct Code Found
+    ↓
+Account Access
+```
+
+The attacker may gain access without needing the legitimate user's device.
+
+---
+
+# Common Defense
+
+Many websites log users out after several incorrect verification attempts.
+
+### Example
+
+```text
+Attempt 1 ❌
+Attempt 2 ❌
+Attempt 3 ❌
+Attempt 4 ❌
+Attempt 5 ❌
+
+Account Logged Out
+```
+
+The user must log in again before trying more codes.
+
+---
+
+# Why This Defense Is Not Always Enough
+
+Simply logging a user out is often not sufficient.
+
+An attacker can:
+
+1. Log in again.
+2. Reach the verification page.
+3. Continue guessing codes.
+4. Repeat the process automatically.
+
+---
+
+# Automation Attacks
+
+Attackers can automate the entire process:
+
+```text
+Login
+   ↓
+Submit Code Guess
+   ↓
+Logged Out
+   ↓
+Login Again
+   ↓
+Submit Another Guess
+   ↓
+Repeat
+```
+
+Automation allows thousands of attempts without manual effort.
+
+---
+
+# Better Security Measures
+
+A secure website should use multiple protections:
+
+### Rate Limiting
+
+Limit the number of verification attempts.
+
+Example:
+
+```text
+Maximum 5 attempts per minute
+```
+
+---
+
+### Account Lockout
+
+Temporarily lock the account after too many failures.
+
+Example:
+
+```text
+10 failed attempts
+       ↓
+Account locked for 30 minutes
+```
+
+---
+
+### CAPTCHA
+
+Require CAPTCHA after multiple failed attempts.
+
+```text
+Failed Attempts
+      ↓
+CAPTCHA Required
+```
+
+---
+
+### Short Code Expiration
+
+Verification codes should expire quickly.
+
+Example:
+
+```text
+Code generated
+      ↓
+Valid for 30 seconds
+      ↓
+Expires
+```
+
+---
+
+### Monitoring and Alerts
+
+Detect suspicious login activity and notify users.
+
+---
+
+# Simple Diagram
+
+```text
+Attacker
+    ↓
+Guess Verification Code
+    ↓
+Website Has No Protection
+    ↓
+Many Attempts Allowed
+    ↓
+Correct Code Found
+    ↓
+Account Compromised
+```
+
+---
+-------------
+-------------
+
+# Vulnerabilities in Other Authentication Mechanisms
+
+## Introduction
+
+Authentication vulnerabilities are not limited to login pages.
+
+Many websites provide additional account management features such as:
+
+* Password Reset
+* Change Password
+* Remember Me / Keep Me Logged In
+* Account Recovery
+
+If these features are not implemented securely, attackers may exploit them to gain access to user accounts.
+
+---
+
+# Why Are These Features Important?
+
+Developers often focus on securing the login page.
+
+However, attackers may target weaker account management features instead.
+
+```text
+Secure Login Page
+       ↓
+Weak Password Reset Feature
+       ↓
+Account Compromise
+```
+
+A website is only as secure as its weakest authentication mechanism.
+
+---
+
+# Keeping Users Logged In ("Remember Me")
+
+Many websites offer a checkbox like:
+
+```text
+☑ Remember Me
+☑ Keep Me Logged In
+```
+
+This allows users to stay logged in even after closing their browser.
+
+---
+
+# How "Remember Me" Works
+
+When the user selects "Remember Me":
+
+1. Website creates a special token.
+2. Token is stored in a browser cookie.
+3. Browser sends the cookie during future visits.
+4. Website recognizes the cookie and logs the user in automatically.
+
+### Example
+
+```text
+User Login
+     ↓
+Remember Me Selected
+     ↓
+Cookie Created
+     ↓
+Cookie Stored in Browser
+     ↓
+Automatic Login Later
+```
+
+---
+
+# Security Risk
+
+Possession of the "Remember Me" cookie often means:
+
+```text
+Cookie = Access to Account
+```
+
+Therefore, the cookie must be difficult to predict or forge.
+
+---
+
+# Vulnerability: Predictable Cookies
+
+Some websites generate cookies using predictable information.
+
+### Example
+
+```text
+username + timestamp
+```
+
+or
+
+```text
+username + password
+```
+
+Example:
+
+```text
+carlos_20260530
+```
+
+If an attacker discovers the pattern, they may predict cookies for other users.
+
+---
+
+# Attack Scenario
+
+### Step 1
+
+Attacker creates their own account.
+
+```text
+Username: attacker
+```
+
+---
+
+### Step 2
+
+Attacker examines their cookie.
+
+```text
+rememberme=attacker_20260530
+```
+
+---
+
+### Step 3
+
+Attacker discovers the generation pattern.
+
+```text
+username + date
+```
+
+---
+
+### Step 4
+
+Attacker creates possible cookies for other users.
+
+```text
+carlos_20260530
+admin_20260530
+victim_20260530
+```
+
+---
+
+### Result
+
+If the website accepts these cookies, the attacker may gain unauthorized access.
+
+---
+
+# Base64 Is NOT Encryption
+
+Some developers think Base64 protects cookie contents.
+
+Example:
+
+```text
+carlos:password123
+```
+
+Encoded:
+
+```text
+Y2FybG9zOnBhc3N3b3JkMTIz
+```
+
+This is only encoding.
+
+Anyone can decode it easily.
+
+### Important
+
+```text
+Base64 ≠ Encryption
+```
+
+Base64 provides no security.
+
+---
+
+# Hash-Based Cookies
+
+Some websites use hashes.
+
+Example:
+
+```text
+SHA256(username + password)
+```
+
+This is better than Base64 but still may be vulnerable.
+
+---
+
+# Problem: No Salt
+
+Suppose the website creates:
+
+```text
+SHA256(carlos123)
+```
+
+If no salt is used:
+
+* Attacker knows the algorithm.
+* Attacker hashes many common values.
+* Attacker compares results.
+
+This is called a hash brute-force attack.
+
+---
+
+# What Is a Salt?
+
+A salt is a random value added before hashing.
+
+Example:
+
+```text
+password + random_salt
+```
+
+Without knowing the salt, attackers cannot easily reproduce the hash.
+
+---
+
+# Cookie Guessing Attacks
+
+Some websites protect login pages with:
+
+* Rate limiting
+* Account lockout
+
+But forget to protect cookie validation.
+
+Example:
+
+```text
+Login Page
+     ↓
+5 Attempts Allowed
+```
+
+But:
+
+```text
+Cookie Validation
+     ↓
+Unlimited Attempts
+```
+
+Attackers may bypass login restrictions by guessing cookies instead.
+
+---
+
+# Cookie Theft
+
+Even if cookies are not predictable, attackers may steal them.
+
+Common methods include:
+
+### Cross-Site Scripting (XSS)
+
+```text
+Malicious Script
+       ↓
+Steals Cookie
+       ↓
+Attacker Uses Cookie
+```
+
+---
+
+### Session Hijacking
+
+```text
+Victim Cookie
+       ↓
+Attacker Obtains Cookie
+       ↓
+Logs In as Victim
+```
+
+---
+
+# Open-Source Framework Risk
+
+Some frameworks publicly document:
+
+* Cookie format
+* Hashing methods
+* Token structure
+
+If developers use weak default settings, attackers may learn how cookies are generated.
+
+---
+
+# Secure Implementation
+
+A secure "Remember Me" feature should use:
+
+✅ Random tokens
+
+✅ Long unpredictable values
+
+✅ Secure cookies
+
+✅ Expiration dates
+
+✅ Server-side validation
+
+✅ Cookie rotation after login
+
+---
+
+# Simple Diagram
+
+## Vulnerable Design
+
+```text
+Username + Timestamp
+          ↓
+Remember Me Cookie
+          ↓
+Attacker Learns Formula
+          ↓
+Creates Other Users' Cookies
+          ↓
+Account Access
+```
+
+---
+
+## Secure Design
+
+```text
+Random Token
+      ↓
+Stored on Server
+      ↓
+Cookie Contains Token
+      ↓
+Server Verifies Token
+      ↓
+User Authenticated
+```
+
+---
+![bsl](images/bsl.png)

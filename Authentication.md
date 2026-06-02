@@ -5149,3 +5149,155 @@ Delete Account
 
 ---
 -----
+## Topic: Password Reset Vulnerabilities
+
+### Why Password Reset Features Are Dangerous
+
+When a user forgets their password, the website must verify that the person requesting the reset is the real owner of the account.
+
+If this process is implemented incorrectly, attackers may be able to reset other users' passwords and take over their accounts.
+
+---
+
+# 1. Sending Passwords by Email
+
+### Insecure Method
+
+Some websites:
+
+1. Generate a new password.
+2. Send it to the user's email.
+
+Example:
+
+```text
+Email:
+Your new password is: Password123
+```
+
+### Problems
+
+* Email is not very secure.
+* The password remains in the inbox.
+* If someone gains access to the email account, they get the password.
+* The password may be intercepted on insecure networks.
+
+### Better Practice
+
+Instead of sending passwords:
+
+* Send a password reset link.
+* Let the user create a new password.
+
+---
+
+# 2. Password Reset Using a URL
+
+### Vulnerable Implementation
+
+Example:
+
+```text
+http://website.com/reset-password?user=carlos
+```
+
+The website identifies the account using the username.
+
+### Attack
+
+Attacker changes:
+
+```text
+user=carlos
+```
+
+to
+
+```text
+user=administrator
+```
+
+If the site does not properly verify ownership, the attacker may reset another user's password.
+
+---
+
+# 3. Password Reset Token (Secure Method)
+
+A secure website generates a long random token.
+
+Example:
+
+```text
+http://website.com/reset-password?token=a0ba0d1cb3b63d13822572fcff1a241895d893f659164d4cc550b421ebdd48a8
+```
+
+### How It Works
+
+1. User clicks "Forgot Password".
+2. Website creates a random token.
+3. Token is emailed to the user.
+4. User opens the reset link.
+5. Website checks the token.
+6. User creates a new password.
+
+### Why It's Better
+
+* Token is difficult to guess.
+* URL does not reveal the username.
+* Token expires after a short time.
+
+---
+
+# 4. Common Token Validation Vulnerability
+
+Some websites check the token only when the reset page is opened.
+
+Example:
+
+### Step 1
+
+Attacker requests a reset for their own account:
+
+```text
+token=ABC123
+```
+
+### Step 2
+
+Reset form opens.
+
+### Step 3
+
+Attacker removes or modifies parameters using Burp Suite.
+
+### Step 4
+
+Website accepts the request without re-checking the token.
+
+### Result
+
+The attacker may reset another user's password.
+
+---
+
+# Secure Password Reset Checklist
+
+A secure password reset system should:
+
+Use long random tokens
+
+Store tokens server-side
+
+Verify token when the form is opened
+
+Verify token again when the form is submitted
+
+Expire tokens quickly
+
+Delete tokens after use
+
+Never expose usernames in reset URLs
+
+Never send passwords through email
+
+---

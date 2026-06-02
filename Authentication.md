@@ -4740,3 +4740,88 @@ MD5 is fast and unsalted
 an attacker can brute-force candidate passwords and generate valid cookies.
 
 ---
+---
+### Topic: Keeping Users Logged In (Authentication Cookies)
+
+
+Some websites use a **"Remember Me"** or **"Stay Logged In"** cookie so users don't have to enter their password every time.
+
+A bad implementation is:
+
+```text
+username:hashed_password
+```
+
+Example:
+
+```text
+carlos:5f4dcc3b5aa765d61d8327deb882cf99
+```
+
+The second part looks secure because it is a hash, but sometimes it isn't.
+
+### Why is this dangerous?
+
+If the password is common (for example: `password`, `123456`, `qwerty`), attackers can:
+
+1. Steal the cookie.
+2. Extract the hash.
+3. Search the hash online or use hash databases.
+4. Find the original password.
+
+Example:
+
+```text
+5f4dcc3b5aa765d61d8327deb882cf99
+```
+
+Searching this hash reveals:
+
+```text
+password
+```
+
+Now the attacker knows the user's real password.
+
+### What is Salt?
+
+A **salt** is a random value added to the password before hashing.
+
+Without salt:
+
+```text
+password
+↓
+MD5
+↓
+5f4dcc3b5aa765d61d8327deb882cf99
+```
+
+With salt:
+
+```text
+password + random_salt
+↓
+Hash
+↓
+different hash value
+```
+
+Even if two users use the same password, their hashes become different.
+
+### Why is Salt Important?
+
+Without salt:
+
+* Hashes can be looked up in online databases.
+* Rainbow table attacks become possible.
+* Common passwords are easy to crack.
+
+With salt:
+
+* Precomputed hash databases become useless.
+* Cracking passwords becomes much harder.
+
+### Key Exam Point
+
+> Storing a password hash directly in a cookie is insecure because attackers may be able to recover the original password using public hash databases. Using a unique salt before hashing helps protect against this attack.

@@ -4825,3 +4825,8 @@ With salt:
 ### Key Exam Point
 
 > Storing a password hash directly in a cookie is insecure because attackers may be able to recover the original password using public hash databases. Using a unique salt before hashing helps protect against this attack.
+
+![lab](images/lab9.png)
+
+
+

@@ -5301,3 +5301,4 @@ Never expose usernames in reset URLs
 Never send passwords through email
 
 ---
+![lab10](images/lab10.png)

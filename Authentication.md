@@ -6290,5 +6290,6 @@ Incorrect password
 
 ---
 
-![lab12(images/lab12.png) 
+![lab10](images/lab12.png)
+
 

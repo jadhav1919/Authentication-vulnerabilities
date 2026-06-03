@@ -6615,3 +6615,291 @@ Enumerate valid passwords
 without actually changing the password.
 
 ---
+----
+
+# Topic: Preventing Attacks on Authentication Mechanisms
+
+This section explains how developers can protect login systems, password resets, and 2FA from common attacks.
+
+
+# 1. Protect User Credentials
+
+### Bad Practice
+
+Sending login credentials over HTTP:
+
+```text
+http://website.com/login
+```
+
+Anyone on the network may intercept the data.
+
+### Good Practice
+
+Use HTTPS everywhere:
+
+```text
+https://website.com/login
+```
+
+Also force all HTTP requests to redirect to HTTPS.
+
+### Additional Precautions
+
+Do not expose:
+
+* Usernames
+* Email addresses
+* Login information
+
+through:
+
+* Public profiles
+* Error messages
+* API responses
+
+# 2. Don't Rely on Users for Security
+
+Users often choose weak passwords like:
+
+```text
+password123
+admin123
+qwerty123
+```
+
+Even if password rules exist, users may still create predictable passwords.
+
+### Better Solution
+
+Use password-strength checkers.
+
+Example:
+
+```text
+Password: password123
+Strength: Weak
+```
+
+```text
+Password: H7@kL9!mP2#x
+Strength: Strong
+```
+
+The website should only allow strong passwords.
+
+# 3. Prevent Username Enumeration
+
+### Vulnerable Example
+
+For valid username:
+
+```text
+Incorrect password
+```
+
+For invalid username:
+
+```text
+User does not exist
+```
+
+An attacker can discover which usernames are valid.
+
+
+### Secure Example
+
+Always show:
+
+```text
+Invalid username or password
+```
+
+Whether:
+
+* Username exists
+* Username doesn't exist
+* Password is wrong
+
+Also ensure:
+
+Same HTTP status code
+
+Same response size
+
+Similar response time
+
+# 4. Implement Brute-Force Protection
+
+### Brute Force Attack
+
+Attacker tries many passwords:
+
+```text
+admin : password
+admin : admin123
+admin : welcome123
+```
+
+until one works.
+
+### Defenses
+
+#### Rate Limiting
+
+Example:
+
+```text
+Maximum 5 login attempts per minute
+```
+
+After that:
+
+```text
+Too many login attempts
+```
+
+#### CAPTCHA
+
+After several failures:
+
+```text
+Select all traffic lights
+```
+
+This slows automated attacks.
+
+
+#### Account Lockout
+
+Example:
+
+```text
+5 failed attempts
+↓
+Account locked for 15 minutes
+```
+
+
+# 5. Verify All Security Logic Carefully
+
+A security check is useless if it can be bypassed.
+
+Example:
+
+```text
+Check token only when page loads
+```
+
+but not when:
+
+```text
+Submit New Password
+```
+
+An attacker may bypass the verification.
+
+### Rule
+
+Every security check should be validated at every important step.
+
+# 6. Don't Forget Password Reset and Change Features
+
+Many developers secure:
+
+```text
+Login Page
+```
+
+but forget:
+
+```text
+Forgot Password
+Change Password
+Remember Me
+2FA
+```
+
+Attackers often target these weaker areas.
+
+Remember:
+
+```text
+Password Reset = Attack Surface
+Password Change = Attack Surface
+```
+
+Secure them as carefully as the login page.
+
+
+# 7. Implement Proper Multi-Factor Authentication (MFA)
+
+### Single Factor
+
+```text
+Password only
+```
+
+Something you know.
+
+
+### True MFA
+
+```text
+Password + Authenticator Code
+```
+
+Something you know +
+
+Something you have.
+
+
+### Weak MFA
+
+Email verification codes:
+
+```text
+Password
++
+Email Code
+```
+
+If email is compromised, both factors may be compromised.
+
+
+### Better MFA
+
+Use authenticator apps:
+
+* Google Authenticator
+* Microsoft Authenticator
+* Authy
+
+These generate codes directly on the device.
+
+
+### Authentication Security Checklist
+
+ Use HTTPS everywhere
+
+ Hide usernames and emails where possible
+
+ Enforce strong passwords
+
+Use generic login error messages
+
+ Prevent username enumeration
+
+ Rate limit login attempts
+
+ Use CAPTCHA after multiple failures
+
+ Audit verification logic carefully
+
+ Secure password reset/change functionality
+
+ Implement proper MFA
+
+ Verify MFA logic cannot be bypassed
+
+---

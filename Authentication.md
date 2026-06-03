@@ -6120,4 +6120,175 @@ when constructing password reset URLs.
 
 This allows attackers to steal password reset tokens.
 
+-------
+-----
+
+## Topic: Changing User Passwords
+
+### Normal Password Change Process
+
+Most websites require:
+
+1. Current password
+2. New password
+3. Confirm new password
+
+Example:
+
+```text
+Current Password: OldPass123
+New Password: NewPass456
+Confirm Password: NewPass456
+```
+
+The website verifies:
+
+```text
+Username + Current Password
+```
+
+just like a normal login.
+
 ---
+
+## Why Can This Be Vulnerable?
+
+Since password change functionality checks credentials like a login page, it can suffer from:
+
+* Username enumeration
+* Password brute-force attacks
+* Parameter manipulation
+
+if implemented incorrectly.
+
+---
+
+## Hidden Username Vulnerability
+
+Some websites include the username in a hidden field:
+
+```html
+<input type="hidden" name="username" value="carlos">
+```
+
+The user cannot normally see this field in the browser.
+
+However, an attacker can intercept the request using tools such as Burp Suite and modify it.
+
+---
+
+## Example Request
+
+```http
+POST /change-password
+
+username=carlos
+current-password=test123
+new-password=newpass
+```
+
+Attacker changes:
+
+```http
+POST /change-password
+
+username=administrator
+current-password=test123
+new-password=newpass
+```
+
+Now the request targets another account.
+
+---
+
+## Username Enumeration
+
+Suppose the website returns:
+
+For a valid username:
+
+```text
+Current password is incorrect
+```
+
+For an invalid username:
+
+```text
+User does not exist
+```
+
+An attacker can try many usernames and identify which accounts exist.
+
+Example:
+
+```text
+administrator  → Current password incorrect
+carlos         → Current password incorrect
+random123      → User does not exist
+```
+
+Result:
+
+```text
+administrator
+carlos
+```
+
+are valid users.
+
+---
+
+## Password Brute Force
+
+After finding valid usernames, the attacker can repeatedly guess passwords.
+
+Example:
+
+```text
+administrator : password123
+administrator : admin123
+administrator : welcome123
+```
+
+If no rate limiting or account lockout exists, eventually the correct password may be found.
+
+---
+
+## Secure Implementation
+
+A secure password change page should:
+
+ Require the user to be authenticated
+
+ Obtain the username from the session, not from user input
+
+ Verify the current password
+
+ Use rate limiting
+
+ Use account lockout mechanisms
+
+ Return generic error messages
+
+Example:
+
+```text
+Password change failed
+```
+
+instead of:
+
+```text
+User does not exist
+```
+
+or
+
+```text
+Incorrect password
+```
+
+---
+
+![lab12(images/lab12.png) 
+

